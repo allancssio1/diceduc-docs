@@ -37,7 +37,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `assessment` — `conaa-api/src/domain/assessment/enterprise/`
+### Contexto `assessment` — `diceduc-api/src/domain/assessment/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -55,7 +55,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/assessment/application/useCases/`
+### `diceduc-api/src/domain/assessment/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -77,7 +77,7 @@ Regras de negócio principais:
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novos models `GradeFormula`, `Assessment`, `Grade`; enums `GradeScaleType`, `AssessmentStatus`.
+- `diceduc-api/prisma/schema.prisma`: novos models `GradeFormula`, `Assessment`, `Grade`; enums `GradeScaleType`, `AssessmentStatus`.
 - Repositórios: `prisma-grade-formulas-repository.ts`, `prisma-assessments-repository.ts`, `prisma-grades-repository.ts` em `infra/database/prisma/repositories/`.
 - Mappers: `grade-formula-mapper.ts`, `assessment-mapper.ts`, `grade-mapper.ts` em `infra/database/prisma/mappers/`.
 
@@ -96,7 +96,7 @@ Geração de PDF (boletim/histórico): usar a lib de PDF definida no bootstrap (
 
 Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`PublishAssessmentUseCase` → `coordenação`; `LaunchGradesUseCase` → `professor` da turma/disciplina; `GenerateReportCardUseCase`/`GenerateTranscriptUseCase` → `responsável`/`aluno`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/notas/formulas/page.tsx` — configuração de `GradeFormula` por segmento (`F1-E04-U01`).
 - `app/(portal)/notas/turmas/[turmaId]/lancamento/page.tsx` — lançamento em lote (`F1-E04-U02`).
@@ -106,32 +106,32 @@ Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`Publi
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/assessment/enterprise/entities/grade-formula.ts`
-- [ ] `conaa-api/src/domain/assessment/enterprise/entities/assessment.ts`
-- [ ] `conaa-api/src/domain/assessment/enterprise/entities/grade.ts`
-- [ ] `conaa-api/src/domain/assessment/enterprise/entities/valueObjects/grade-scale.ts`
-- [ ] `conaa-api/src/domain/assessment/enterprise/entities/valueObjects/assessment-status.ts`
-- [ ] `conaa-api/src/domain/assessment/application/useCases/configure-grade-formula.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/useCases/create-assessment.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/useCases/launch-grades.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/useCases/publish-assessment.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/useCases/calculate-final-average.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/useCases/generate-report-card.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/useCases/generate-transcript.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/assessment/application/repositories/grade-formulas-repository.ts`
-- [ ] `conaa-api/src/domain/assessment/application/repositories/assessments-repository.ts`
-- [ ] `conaa-api/src/domain/assessment/application/repositories/grades-repository.ts`
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/*.ts` (3 repositórios, ver seção Persistência)
-- [ ] `conaa-api/src/infra/database/prisma/mappers/*.ts` (3 mappers, ver seção Persistência)
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (6 controllers, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/*.ts` (4 presenters, ver seção HTTP)
-- [ ] `conaa-web/app/(portal)/notas/formulas/page.tsx`
-- [ ] `conaa-web/app/(portal)/notas/turmas/[turmaId]/lancamento/page.tsx`
-- [ ] `conaa-web/app/(portal)/notas/[studentId]/boletim/page.tsx`
-- [ ] `conaa-web/features/assessment/components/*.tsx`
-- [ ] `conaa-web/features/assessment/api/assessments.ts`
-- [ ] `conaa-web/features/assessment/schemas/assessment.ts`
+- [ ] `diceduc-api/src/domain/assessment/enterprise/entities/grade-formula.ts`
+- [ ] `diceduc-api/src/domain/assessment/enterprise/entities/assessment.ts`
+- [ ] `diceduc-api/src/domain/assessment/enterprise/entities/grade.ts`
+- [ ] `diceduc-api/src/domain/assessment/enterprise/entities/valueObjects/grade-scale.ts`
+- [ ] `diceduc-api/src/domain/assessment/enterprise/entities/valueObjects/assessment-status.ts`
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/configure-grade-formula.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/create-assessment.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/launch-grades.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/publish-assessment.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/calculate-final-average.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/generate-report-card.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/generate-transcript.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/repositories/grade-formulas-repository.ts`
+- [ ] `diceduc-api/src/domain/assessment/application/repositories/assessments-repository.ts`
+- [ ] `diceduc-api/src/domain/assessment/application/repositories/grades-repository.ts`
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/*.ts` (3 repositórios, ver seção Persistência)
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/*.ts` (3 mappers, ver seção Persistência)
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (6 controllers, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/*.ts` (4 presenters, ver seção HTTP)
+- [ ] `diceduc-web/app/(portal)/notas/formulas/page.tsx`
+- [ ] `diceduc-web/app/(portal)/notas/turmas/[turmaId]/lancamento/page.tsx`
+- [ ] `diceduc-web/app/(portal)/notas/[studentId]/boletim/page.tsx`
+- [ ] `diceduc-web/features/assessment/components/*.tsx`
+- [ ] `diceduc-web/features/assessment/api/assessments.ts`
+- [ ] `diceduc-web/features/assessment/schemas/assessment.ts`
 
 ## Testes
 

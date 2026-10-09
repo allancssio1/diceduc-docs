@@ -14,7 +14,7 @@
 
 ## Objetivo
 
-Entregar o portal web (`conaa-web`) que expõe, por papel (responsável, professor, aluno), os dados já disponíveis na API dos épicos F1-E01 a F1-E06.
+Entregar o portal web (`diceduc-web`) que expõe, por papel (responsável, professor, aluno), os dados já disponíveis na API dos épicos F1-E01 a F1-E06.
 
 ## Histórias cobertas
 
@@ -28,7 +28,7 @@ Comunicados (parte de `F1-E08-U01`) ainda não têm origem de dados própria —
 
 Nenhum use case de `F1-E01` retorna "todos os alunos vinculados a um responsável" — só o inverso (`GET /students/:studentId` inclui responsáveis). O portal do responsável (`F1-E08-U01`) precisa dessa consulta para o seletor de filhos. Resolução: adicionar um use case pequeno ao contexto `people` como parte desta ficha (não abrir uma spec nova só para isso).
 
-### `ListGuardianStudentsUseCase` — `conaa-api/src/domain/people/application/useCases/list-guardian-students.ts`
+### `ListGuardianStudentsUseCase` — `diceduc-api/src/domain/people/application/useCases/list-guardian-students.ts`
 
 - Entrada: `guardianId` (resolvido a partir de `User.person` do usuário autenticado — `F1-E10` — via `GetMeUseCase`/`@CurrentUser()`; um `User` com `person.type != 'GUARDIAN'` não chama este use case).
 - Saída: `Either<ResourceNotFoundError, { students: Student[] }>`.
@@ -47,9 +47,9 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-Nenhuma outra entidade nova além do use case acima. O restante desta ficha é composição de telas em `conaa-web` sobre endpoints já existentes.
+Nenhuma outra entidade nova além do use case acima. O restante desta ficha é composição de telas em `diceduc-web` sobre endpoints já existentes.
 
-## Rotas e controle de acesso (`conaa-web`)
+## Rotas e controle de acesso (`diceduc-web`)
 
 - `proxy.ts` (`F1-E10`) já resolve/renova a sessão (`arquitetura-frontend.md` §6), mas só faz a checagem otimista de que o cookie existe — não sabe o papel do usuário. Esta ficha adiciona a checagem de **papel** por grupo de rota — responsável só acessa `/(portal)/responsavel/**`, professor só `/(portal)/professor/**`, aluno só `/(portal)/aluno/**` — no `layout.tsx` de cada área, via `getSession()` (`GET /me`, `F1-E10`; papéis de verdade vêm de `F1-E09`, já resolvido no backend). Como um layout não é re-renderizado em navegação entre páginas irmãs, as páginas de cada área também chamam `getSession()` (o `cache()` do React evita chamada duplicada — ver `arquitetura-frontend.md` §6); a proteção de fato é sempre a API, isso aqui só evita renderizar tela/ação errada.
 - `shared/auth`: hook `useSession()` expõe `role` e, para responsável, o `guardianId`/lista de filhos (via `ListGuardianStudentsUseCase`).
@@ -75,7 +75,7 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 - `app/(portal)/aluno/frequencia/page.tsx` — consome o novo `GET /students/:studentId/attendance-summary`.
 - Ambas as telas são somente leitura — nenhum botão de edição renderizado para o papel `aluno` (reforçado também no backend: os controllers de lançamento já exigem perfil `professor`/`secretaria`, não `aluno`; e mesmo que o frontend tentasse mandar um `studentId` diferente, `allowedStudentIds` de `F1-E09` restringe o aluno a si mesmo — a UI nunca é a única barreira).
 
-## Componentes e API client (`conaa-web`)
+## Componentes e API client (`diceduc-web`)
 
 - `features/people/api/guardians.ts` (`getMyStudents`).
 - `features/attendance/api/attendance.ts` — adicionar `getStudentAttendanceSummary`.
@@ -85,31 +85,31 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/people/application/useCases/list-guardian-students.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/attendance/application/useCases/get-student-attendance-summary.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/infra/http/controllers/list-guardian-students.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/get-student-attendance-summary.controller.ts`
-- [ ] `conaa-web/proxy.ts` (editar — checagem de papel por grupo de rota)
-- [ ] `conaa-web/shared/auth/useSession.ts` (editar — expor `role`/`guardianId`)
-- [ ] `conaa-web/app/(portal)/responsavel/page.tsx`
-- [ ] `conaa-web/app/(portal)/responsavel/[studentId]/frequencia/page.tsx`
-- [ ] `conaa-web/app/(portal)/responsavel/[studentId]/boletim/page.tsx`
-- [ ] `conaa-web/app/(portal)/responsavel/[studentId]/financeiro/page.tsx`
-- [ ] `conaa-web/app/(portal)/responsavel/[studentId]/comunicados/page.tsx` (placeholder)
-- [ ] `conaa-web/app/(portal)/professor/minha-grade/page.tsx`
-- [ ] `conaa-web/app/(portal)/professor/turmas/[turmaId]/chamada/page.tsx`
-- [ ] `conaa-web/app/(portal)/professor/turmas/[turmaId]/notas/page.tsx`
-- [ ] `conaa-web/app/(portal)/aluno/boletim/page.tsx`
-- [ ] `conaa-web/app/(portal)/aluno/frequencia/page.tsx`
-- [ ] `conaa-web/features/people/api/guardians.ts`
-- [ ] `conaa-web/features/attendance/api/attendance.ts` (editar)
-- [ ] `conaa-web/features/attendance/components/AttendanceSummaryCard.tsx`
+- [ ] `diceduc-api/src/domain/people/application/useCases/list-guardian-students.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/attendance/application/useCases/get-student-attendance-summary.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/infra/http/controllers/list-guardian-students.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/get-student-attendance-summary.controller.ts`
+- [ ] `diceduc-web/proxy.ts` (editar — checagem de papel por grupo de rota)
+- [ ] `diceduc-web/shared/auth/useSession.ts` (editar — expor `role`/`guardianId`)
+- [ ] `diceduc-web/app/(portal)/responsavel/page.tsx`
+- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/frequencia/page.tsx`
+- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/boletim/page.tsx`
+- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/financeiro/page.tsx`
+- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/comunicados/page.tsx` (placeholder)
+- [ ] `diceduc-web/app/(portal)/professor/minha-grade/page.tsx`
+- [ ] `diceduc-web/app/(portal)/professor/turmas/[turmaId]/chamada/page.tsx`
+- [ ] `diceduc-web/app/(portal)/professor/turmas/[turmaId]/notas/page.tsx`
+- [ ] `diceduc-web/app/(portal)/aluno/boletim/page.tsx`
+- [ ] `diceduc-web/app/(portal)/aluno/frequencia/page.tsx`
+- [ ] `diceduc-web/features/people/api/guardians.ts`
+- [ ] `diceduc-web/features/attendance/api/attendance.ts` (editar)
+- [ ] `diceduc-web/features/attendance/components/AttendanceSummaryCard.tsx`
 
 ## Testes
 
 - Backend: unit spec para `ListGuardianStudentsUseCase` e `GetStudentAttendanceSummaryUseCase` (repositórios in-memory já existentes de `F1-E01`/`F1-E03`); e2e para os dois novos controllers, incluindo **IDOR**: responsável autenticado pedindo `attendance-summary`/`report-card`/`financial-status` de um `studentId` que não é filho dele → `404` (o `allowedStudentIds` de `F1-E09` resolve isso nos repositórios já existentes, sem lógica nova nestes dois use cases).
 - Frontend: teste de componente para `AttendanceSummaryCard`; teste do `layout.tsx` de cada área garantindo que um usuário com papel `RESPONSAVEL` não acessa `/(portal)/professor/**` (redirect) — a checagem agora é via `getSession()`, não mais uma prop simples de `role` no `proxy.ts` (ver "Rotas e controle de acesso").
-- E2E (Playwright, crítico, roda no CI do `conaa-web` a partir desta ficha — job sobe Postgres + `conaa-api` no mesmo workflow, ver `F1-E00`): login como responsável → seleciona filho → vê boletim e financeiro; login como aluno → vê boletim (sem botão de edição); responsável tentando abrir a URL do boletim de outro aluno (fora dos seus filhos) → erro/404, nunca o boletim de fato.
+- E2E (Playwright, crítico, roda no CI do `diceduc-web` a partir desta ficha — job sobe Postgres + `diceduc-api` no mesmo workflow, ver `F1-E00`): login como responsável → seleciona filho → vê boletim e financeiro; login como aluno → vê boletim (sem botão de edição); responsável tentando abrir a URL do boletim de outro aluno (fora dos seus filhos) → erro/404, nunca o boletim de fato.
 
 ## Definition of Done
 
@@ -119,5 +119,5 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 - [ ] Portal do responsável permite alternar entre múltiplos filhos.
 - [ ] Acesso do aluno é comprovadamente somente leitura (nenhum controle de edição renderizado nem endpoint de escrita aceito para esse papel).
 - [ ] Testes de IDOR (acima) passando para os três endpoints consumidos pelos portais (`report-card`, `attendance-summary`, `financial-status`).
-- [ ] Playwright rodando no CI do `conaa-web` (não só localmente).
+- [ ] Playwright rodando no CI do `diceduc-web` (não só localmente).
 - [ ] `.claude/docs/features/README.md` atualizado: status de `F1-E08` para 🟢 quando implementado, com nota sobre comunicados/conteúdo de aula ficarem para épicos futuros.

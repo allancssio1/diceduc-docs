@@ -38,7 +38,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `academic` — `conaa-api/src/domain/academic/enterprise/`
+### Contexto `academic` — `diceduc-api/src/domain/academic/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -56,7 +56,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/academic/application/useCases/`
+### `diceduc-api/src/domain/academic/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ Regras de negócio principais:
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novos models `Enrollment`, `PromotionRule`, `RenewalPolicy` (tabela de 1 linha); enums `EnrollmentStatus`, `FinalResult`.
+- `diceduc-api/prisma/schema.prisma`: novos models `Enrollment`, `PromotionRule`, `RenewalPolicy` (tabela de 1 linha); enums `EnrollmentStatus`, `FinalResult`.
 - Repositórios: `prisma-enrollments-repository.ts`, `prisma-promotion-rules-repository.ts`, `prisma-renewal-policy-repository.ts` em `infra/database/prisma/repositories/`. `prisma-turmas-repository.ts` (já existente, de `F1-E01`) ganha a implementação real de `hasEnrolledStudents`/`countEnrolledStudents` sobre `Enrollment`.
 - Adapters de serviço: `infra/database/prisma/services/stub-finance-status-provider.ts`, `stub-attendance-stats-provider.ts`, `stub-grades-stats-provider.ts` (implementações provisórias descritas acima).
 - Mappers: `enrollment-mapper.ts`, `promotion-rule-mapper.ts` em `infra/database/prisma/mappers/`.
@@ -95,7 +95,7 @@ Regras de negócio principais:
 
 Perfis exigidos: `secretaria`/`coordenação` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/matriculas/nova/page.tsx` — formulário de matrícula/pré-matrícula (`F1-E02-U01`).
 - `app/(portal)/matriculas/[studentId]/rematricula/page.tsx` — fluxo de rematrícula com aviso de pendência financeira (`F1-E02-U02`).
@@ -105,39 +105,39 @@ Perfis exigidos: `secretaria`/`coordenação` (guard fino vem de `F1-E09`; por o
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/academic/enterprise/entities/enrollment.ts`
-- [ ] `conaa-api/src/domain/academic/enterprise/entities/promotion-rule.ts`
-- [ ] `conaa-api/src/domain/academic/enterprise/entities/valueObjects/enrollment-status.ts`
-- [ ] `conaa-api/src/domain/academic/enterprise/entities/valueObjects/final-result.ts`
-- [ ] `conaa-api/src/domain/academic/application/useCases/enroll-student.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/renew-enrollment.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/configure-promotion-rule.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/calculate-final-result.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/configure-renewal-policy.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/repositories/enrollments-repository.ts`
-- [ ] `conaa-api/src/domain/academic/application/repositories/promotion-rules-repository.ts`
-- [ ] `conaa-api/src/domain/academic/application/repositories/renewal-policy-repository.ts`
-- [ ] `conaa-api/src/domain/academic/application/services/finance-status-provider.ts`
-- [ ] `conaa-api/src/domain/academic/application/services/attendance-stats-provider.ts`
-- [ ] `conaa-api/src/domain/academic/application/services/grades-stats-provider.ts`
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-enrollments-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-promotion-rules-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-renewal-policy-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-turmas-repository.ts` (editar — implementar `hasEnrolledStudents`/`countEnrolledStudents`)
-- [ ] `conaa-api/src/infra/database/prisma/services/stub-finance-status-provider.ts`
-- [ ] `conaa-api/src/infra/database/prisma/services/stub-attendance-stats-provider.ts`
-- [ ] `conaa-api/src/infra/database/prisma/services/stub-grades-stats-provider.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/enrollment-mapper.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/promotion-rule-mapper.ts`
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (7 controllers, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/enrollment-presenter.ts`, `promotion-rule-presenter.ts`, `renewal-policy-presenter.ts`
-- [ ] `conaa-web/app/(portal)/matriculas/nova/page.tsx`
-- [ ] `conaa-web/app/(portal)/matriculas/[studentId]/rematricula/page.tsx`
-- [ ] `conaa-web/app/(portal)/matriculas/regras-promocao/page.tsx`
-- [ ] `conaa-web/features/academic/components/EnrollmentForm.tsx`, `RenewalForm.tsx`, `PromotionRuleForm.tsx`, `FinalResultBadge.tsx`
-- [ ] `conaa-web/features/academic/api/enrollments.ts`
-- [ ] `conaa-web/features/academic/schemas/enrollment.ts`
+- [ ] `diceduc-api/src/domain/academic/enterprise/entities/enrollment.ts`
+- [ ] `diceduc-api/src/domain/academic/enterprise/entities/promotion-rule.ts`
+- [ ] `diceduc-api/src/domain/academic/enterprise/entities/valueObjects/enrollment-status.ts`
+- [ ] `diceduc-api/src/domain/academic/enterprise/entities/valueObjects/final-result.ts`
+- [ ] `diceduc-api/src/domain/academic/application/useCases/enroll-student.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/renew-enrollment.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/configure-promotion-rule.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/calculate-final-result.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/configure-renewal-policy.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/repositories/enrollments-repository.ts`
+- [ ] `diceduc-api/src/domain/academic/application/repositories/promotion-rules-repository.ts`
+- [ ] `diceduc-api/src/domain/academic/application/repositories/renewal-policy-repository.ts`
+- [ ] `diceduc-api/src/domain/academic/application/services/finance-status-provider.ts`
+- [ ] `diceduc-api/src/domain/academic/application/services/attendance-stats-provider.ts`
+- [ ] `diceduc-api/src/domain/academic/application/services/grades-stats-provider.ts`
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-enrollments-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-promotion-rules-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-renewal-policy-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-turmas-repository.ts` (editar — implementar `hasEnrolledStudents`/`countEnrolledStudents`)
+- [ ] `diceduc-api/src/infra/database/prisma/services/stub-finance-status-provider.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/services/stub-attendance-stats-provider.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/services/stub-grades-stats-provider.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/enrollment-mapper.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/promotion-rule-mapper.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (7 controllers, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/enrollment-presenter.ts`, `promotion-rule-presenter.ts`, `renewal-policy-presenter.ts`
+- [ ] `diceduc-web/app/(portal)/matriculas/nova/page.tsx`
+- [ ] `diceduc-web/app/(portal)/matriculas/[studentId]/rematricula/page.tsx`
+- [ ] `diceduc-web/app/(portal)/matriculas/regras-promocao/page.tsx`
+- [ ] `diceduc-web/features/academic/components/EnrollmentForm.tsx`, `RenewalForm.tsx`, `PromotionRuleForm.tsx`, `FinalResultBadge.tsx`
+- [ ] `diceduc-web/features/academic/api/enrollments.ts`
+- [ ] `diceduc-web/features/academic/schemas/enrollment.ts`
 
 ## Testes
 

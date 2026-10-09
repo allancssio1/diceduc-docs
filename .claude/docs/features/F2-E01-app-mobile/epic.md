@@ -24,12 +24,12 @@ Aplicativo mobile (iOS/Android) com paridade essencial ao portal web, incluindo 
 
 ## Escopo / fora de escopo
 
-- **Dentro:** app mobile consumindo a mesma API do `conaa-web`, paridade de funcionalidades essenciais, push.
+- **Dentro:** app mobile consumindo a mesma API do `diceduc-web`, paridade de funcionalidades essenciais, push.
 - **Fora:** recursos exclusivos de mobile como GPS de transporte (F3-E04) ou UX diferenciada avançada (F3-E05 — aqui é paridade, não "experiência superior").
 
 ## Dependências e integrações
 
-Depende de F1-E08 (mesma API/contratos do portal web). Provavelmente reusa a camada `shared/api` do `conaa-web` ou expõe um cliente equivalente para o app.
+Depende de F1-E08 (mesma API/contratos do portal web). Provavelmente reusa a camada `shared/api` do `diceduc-web` ou expõe um cliente equivalente para o app.
 
 ## Decisões em aberto / riscos
 

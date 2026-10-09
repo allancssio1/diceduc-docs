@@ -1,4 +1,4 @@
-# Design system — `conaa-web`
+# Design system — `diceduc-web`
 
 > Complementa [arquitetura-frontend.md](arquitetura-frontend.md) (organização de código) com a camada visual: tokens, tipografia, tema, branding por tenant e o inventário de componentes. Leia os dois antes de implementar qualquer tela.
 >
@@ -8,12 +8,12 @@
 
 - **Tailwind CSS v4** + **shadcn/ui** — a lib de componentes é copiada para o repositório (`shared/ui/`), não instalada como pacote; cada componente pode ser ajustado localmente.
 - `components.json` gerado por `shadcn init` na ficha de bootstrap (`F1-E00`), apontando `shared/ui/` como diretório de componentes.
-- Consulta de componentes: usar o MCP do shadcn (`search_items_in_registries`, `view_items_in_registries`, `get_item_examples_from_registries`) para confirmar nome exato e exemplo de uso antes de instalar — só funciona dentro do `conaa-web`, depois que `components.json` existir; neste hub de documentação ele não tem o que listar.
+- Consulta de componentes: usar o MCP do shadcn (`search_items_in_registries`, `view_items_in_registries`, `get_item_examples_from_registries`) para confirmar nome exato e exemplo de uso antes de instalar — só funciona dentro do `diceduc-web`, depois que `components.json` existir; neste hub de documentação ele não tem o que listar.
 - `get_add_command_for_items` dá o comando exato de instalação de cada componente (ex.: `npx shadcn@latest add button`).
 
 ## 2. Tokens (`globals.css`)
 
-Origem: preset shadcn escolhido para o CONAA (Tailwind v4, cores em `oklch`). Copiar exatamente como está — é a fonte de verdade até o `conaa-web` existir.
+Origem: preset shadcn escolhido para o DICEDUC (Tailwind v4, cores em `oklch`). Copiar exatamente como está — é a fonte de verdade até o `diceduc-web` existir.
 
 ```css
 :root {

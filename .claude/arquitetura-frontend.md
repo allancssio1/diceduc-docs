@@ -1,12 +1,12 @@
 # Arquitetura de referência: frontend (Next.js 16.3)
 
-> **Proposta revisável.** Diferente de [arquitetura-ignite.md](arquitetura-ignite.md) (que documenta um projeto de referência existente), este documento é uma convenção proposta para o repositório `conaa-web` do CONAA, pensada para espelhar o mesmo nível de organização do backend (repositório `conaa-api`). Ajuste livremente antes de considerá-la definitiva.
+> **Proposta revisável.** Diferente de [arquitetura-ignite.md](arquitetura-ignite.md) (que documenta um projeto de referência existente), este documento é uma convenção proposta para o repositório `diceduc-web` do DICEDUC, pensada para espelhar o mesmo nível de organização do backend (repositório `diceduc-api`). Ajuste livremente antes de considerá-la definitiva.
 >
 > **Nota de versão:** a API exata do Next.js 16.3 (nomes de APIs, comportamento padrão de cache, etc.) deve ser validada contra a documentação oficial no momento da implementação de cada ficha — não assuma este documento como fonte de verdade sobre a API do framework, só sobre a organização do projeto.
 
 ## 1. Visão geral
 
-`conaa-web` consome a API do `conaa-api` via um client HTTP tipado. Organização por **feature** (não por tipo de arquivo), espelhando os bounded contexts do backend sempre que fizer sentido para a navegação do usuário (ex.: contexto `academic` → área "Turmas" no app).
+`diceduc-web` consome a API do `diceduc-api` via um client HTTP tipado. Organização por **feature** (não por tipo de arquivo), espelhando os bounded contexts do backend sempre que fizer sentido para a navegação do usuário (ex.: contexto `academic` → área "Turmas" no app).
 
 ```
 app        →  camada de rotas (App Router) — fina, delega para features/
@@ -24,7 +24,7 @@ escrevem os caminhos como `app/(portal)/…`/`app/(public)/…` por brevidade; l
 a `app/[grupo]/[escola]/`:
 
 ```
-conaa-web/
+diceduc-web/
   app/
     [grupo]/
       [escola]/
@@ -55,7 +55,7 @@ conaa-web/
   next.config.ts
 ```
 
-Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bounded context do backend (`conaa-api/src/domain/<contexto>`), facilitando encontrar "onde mora a tela que fala com este use case".
+Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bounded context do backend (`diceduc-api/src/domain/<contexto>`), facilitando encontrar "onde mora a tela que fala com este use case".
 
 ## 3. Camada de rotas (`app/`)
 
@@ -79,13 +79,13 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 
 ## 6. Autenticação e autorização
 
-Padrão **BFF** (backend-for-frontend): o browser nunca chama o `conaa-api` diretamente, só o
-servidor do `conaa-web` (Server Components, Server Actions, Route Handlers). Isso elimina CORS
+Padrão **BFF** (backend-for-frontend): o browser nunca chama o `diceduc-api` diretamente, só o
+servidor do `diceduc-web` (Server Components, Server Actions, Route Handlers). Isso elimina CORS
 (a API não precisa aceitar origem de browser) e reduz a superfície de CSRF a Server Actions +
 checagem de `Origin`. Detalhe completo de emissão/renovação de sessão em
 [F1-E10](docs/features/F1-E10-identidade-acesso/spec-identidade-acesso.md).
 
-- **Cookies:** `conaa_access` (15 min) e `conaa_refresh` (7 dias), ambos httpOnly, Secure,
+- **Cookies:** `diceduc_access` (15 min) e `diceduc_refresh` (7 dias), ambos httpOnly, Secure,
   `SameSite=Lax`, com `Path=/{grupoSlug}` — permite ficar logado em grupos diferentes ao mesmo
   tempo no mesmo navegador (ex.: professor que leciona em duas secretarias).
 - **`proxy.ts`:** extrai grupo e escola do pathname. Sem cookie → redireciona para o login daquela
@@ -118,7 +118,7 @@ checagem de `Origin`. Detalhe completo de emissão/renovação de sessão em
 
 - Componentes/hooks: Vitest + Testing Library, mesma stack de teste do backend por consistência de tooling entre os repositórios.
 - Mocks de API: funções de `features/<contexto>/api` são mockadas nos testes de componente — nunca mocka-se `fetch` diretamente.
-- E2E de fluxo crítico (login, matrícula, lançamento de nota): Playwright, rodando contra `conaa-api` local.
+- E2E de fluxo crítico (login, matrícula, lançamento de nota): Playwright, rodando contra `diceduc-api` local.
 
 ## 9. Principais dependências (proposta)
 
@@ -138,7 +138,7 @@ a uma única `School` — ver [arquitetura-ignite.md §11](arquitetura-ignite.md
 para o modelo completo. Implicações no frontend:
 
 - **Tenant na URL:** o grupo e a escola vêm do path (`app/[grupo]/[escola]/…`), não de subdomínio
-  — um subdomínio por tenant (`<group>.conaa.app`) segue como evolução possível, não faz parte do
+  — um subdomínio por tenant (`<group>.diceduc.app`) segue como evolução possível, não faz parte do
   MVP.
 - `shared/auth`: `useSession()` expõe `groupId`, `schoolId` e `role` resolvidos do backend (via
   `getSession()`) — nunca inferidos/setados no cliente. Não existe mais `allowedSchoolIds`: como a
@@ -152,6 +152,6 @@ para o modelo completo. Implicações no frontend:
 
 ## 11. O que aproveitar do padrão do backend
 
-- Organização por domínio (`features/<contexto>` espelhando `domain/<contexto>`) mantém a navegação mental consistente entre os dois repositórios (`conaa-api` e `conaa-web`).
+- Organização por domínio (`features/<contexto>` espelhando `domain/<contexto>`) mantém a navegação mental consistente entre os dois repositórios (`diceduc-api` e `diceduc-web`).
 - Reuso de Zod entre frontend e backend reduz duplicação de regras de validação (mesmo que os schemas não sejam literalmente compartilhados via pacote comum, a *fonte* de cada regra é a ficha da tarefa).
 - Erros de negócio (`Either` no backend) devem ter um mapeamento único e prático no client HTTP, para que toda tela trate erro de negócio de forma consistente em vez de cada componente reinventar tratamento de erro.

@@ -32,7 +32,7 @@ Nenhuma entidade nova. Reusa `Group.dpoName`/`dpoEmail` (`F1-E0A`) e adiciona um
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/reporting/application/useCases/export-student-data.ts`
+### `diceduc-api/src/domain/reporting/application/useCases/export-student-data.ts`
 
 - Entrada: `studentId`.
 - Saída (`Either`): `Either<ResourceNotFoundError, { data: StudentDataExport }>`, onde `StudentDataExport` é um DTO simples (não entidade) com: dados do `Student`, `Guardian`s vinculados (`F1-E01`), matrículas (`F1-E02`), frequência (`F1-E03`), notas — **só de `Assessment.status = 'PUBLISHED'`** (`F1-E04`, mesma regra de `GenerateReportCardUseCase`), títulos financeiros (`F1-E06`), registros de consentimento (`spec-seguranca-lgpd.md`).
@@ -52,7 +52,7 @@ Nenhum novo model — mesma regra de `F1-E07` (`reporting` é leitura pura). `Au
 
 Perfis exigidos: `export-student-data` → `responsável`/`aluno`/`secretaria`/`direção` (a restrição real de "só o próprio filho" é o `allowedStudentIds`, não o `@RequirePermission`).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(public)/privacidade/page.tsx` — página de privacidade: contato do encarregado (`group.dpoName`/`dpoEmail`, via `useSession()`/`getMe`), explicação de como pedir correção/eliminação de dados, e resumo em linguagem simples da política de retenção (ver seção abaixo). Pública porque não depende de estar logado numa escola específica.
 - `app/(portal)/responsavel/[studentId]/page.tsx` (editar, de `F1-E08`) — botão "Baixar meus dados" chamando `GET /students/:studentId/data-export`.
@@ -74,15 +74,15 @@ Tabela de referência para orientar a página de privacidade — **não implemen
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/reporting/application/useCases/export-student-data.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/audit-action.ts` (editar — adicionar `'EXPORT'`)
-- [ ] `conaa-api/prisma/schema.prisma` (editar — enum `AuditAction`)
-- [ ] `conaa-api/src/infra/http/controllers/export-student-data.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/get-me.controller.ts` (editar, de `F1-E10` — incluir `group.dpoName`/`dpoEmail`)
-- [ ] `conaa-web/app/(public)/privacidade/page.tsx`
-- [ ] `conaa-web/app/(portal)/responsavel/[studentId]/page.tsx` (editar)
-- [ ] `conaa-web/app/(portal)/cadastros/alunos/[studentId]/page.tsx` (editar)
-- [ ] `conaa-web/features/reporting/api/reports.ts` (editar)
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/export-student-data.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/audit-action.ts` (editar — adicionar `'EXPORT'`)
+- [ ] `diceduc-api/prisma/schema.prisma` (editar — enum `AuditAction`)
+- [ ] `diceduc-api/src/infra/http/controllers/export-student-data.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/get-me.controller.ts` (editar, de `F1-E10` — incluir `group.dpoName`/`dpoEmail`)
+- [ ] `diceduc-web/app/(public)/privacidade/page.tsx`
+- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/page.tsx` (editar)
+- [ ] `diceduc-web/app/(portal)/cadastros/alunos/[studentId]/page.tsx` (editar)
+- [ ] `diceduc-web/features/reporting/api/reports.ts` (editar)
 
 ## Testes
 

@@ -35,7 +35,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `finance` — `conaa-api/src/domain/finance/enterprise/`
+### Contexto `finance` — `diceduc-api/src/domain/finance/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/finance/application/useCases/`
+### `diceduc-api/src/domain/finance/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -71,7 +71,7 @@ Regras de negócio principais:
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novos models `BillingPlan`, `Invoice`; enums `InvoiceStatus`, `PaymentMethod`. `externalGatewayId` como `String?` já reservado no schema (sem uso ainda).
+- `diceduc-api/prisma/schema.prisma`: novos models `BillingPlan`, `Invoice`; enums `InvoiceStatus`, `PaymentMethod`. `externalGatewayId` como `String?` já reservado no schema (sem uso ainda).
 - Repositórios: `prisma-billing-plans-repository.ts`, `prisma-invoices-repository.ts` em `infra/database/prisma/repositories/`.
 - Adapter de serviço: `infra/database/prisma/services/prisma-finance-status-provider.ts` (implementa `FinanceStatusProvider` de `F1-E02`, ver seção "Integração").
 - Mappers: `billing-plan-mapper.ts`, `invoice-mapper.ts` em `infra/database/prisma/mappers/`.
@@ -87,7 +87,7 @@ Regras de negócio principais:
 
 Perfis exigidos: todas as rotas → `financeiro`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/financeiro/planos/page.tsx` — CRUD de `BillingPlan` (`F1-E06-U01`).
 - `app/(portal)/financeiro/alunos/[studentId]/page.tsx` — títulos do aluno, baixa manual (`F1-E06-U02`).
@@ -97,30 +97,30 @@ Perfis exigidos: todas as rotas → `financeiro`/`secretaria` (guard fino vem de
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/finance/enterprise/entities/billing-plan.ts`
-- [ ] `conaa-api/src/domain/finance/enterprise/entities/invoice.ts`
-- [ ] `conaa-api/src/domain/finance/enterprise/entities/valueObjects/invoice-status.ts`
-- [ ] `conaa-api/src/domain/finance/enterprise/entities/valueObjects/payment-method.ts`
-- [ ] `conaa-api/src/domain/finance/application/useCases/create-billing-plan.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/finance/application/useCases/link-billing-plan-to-student.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/finance/application/useCases/register-payment.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/finance/application/useCases/get-financial-status.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/finance/application/repositories/billing-plans-repository.ts`
-- [ ] `conaa-api/src/domain/finance/application/repositories/invoices-repository.ts`
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-billing-plans-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-invoices-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/services/prisma-finance-status-provider.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/billing-plan-mapper.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/invoice-mapper.ts`
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (4 controllers, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/billing-plan-presenter.ts`, `invoice-presenter.ts`
-- [ ] `conaa-web/app/(portal)/financeiro/planos/page.tsx`
-- [ ] `conaa-web/app/(portal)/financeiro/alunos/[studentId]/page.tsx`
-- [ ] `conaa-web/app/(portal)/financeiro/inadimplencia/page.tsx`
-- [ ] `conaa-web/features/finance/components/*.tsx`
-- [ ] `conaa-web/features/finance/api/finance.ts`
-- [ ] `conaa-web/features/finance/schemas/finance.ts`
+- [ ] `diceduc-api/src/domain/finance/enterprise/entities/billing-plan.ts`
+- [ ] `diceduc-api/src/domain/finance/enterprise/entities/invoice.ts`
+- [ ] `diceduc-api/src/domain/finance/enterprise/entities/valueObjects/invoice-status.ts`
+- [ ] `diceduc-api/src/domain/finance/enterprise/entities/valueObjects/payment-method.ts`
+- [ ] `diceduc-api/src/domain/finance/application/useCases/create-billing-plan.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/finance/application/useCases/link-billing-plan-to-student.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/finance/application/useCases/register-payment.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/finance/application/useCases/get-financial-status.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/finance/application/repositories/billing-plans-repository.ts`
+- [ ] `diceduc-api/src/domain/finance/application/repositories/invoices-repository.ts`
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-billing-plans-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-invoices-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/services/prisma-finance-status-provider.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/billing-plan-mapper.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/invoice-mapper.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (4 controllers, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/billing-plan-presenter.ts`, `invoice-presenter.ts`
+- [ ] `diceduc-web/app/(portal)/financeiro/planos/page.tsx`
+- [ ] `diceduc-web/app/(portal)/financeiro/alunos/[studentId]/page.tsx`
+- [ ] `diceduc-web/app/(portal)/financeiro/inadimplencia/page.tsx`
+- [ ] `diceduc-web/features/finance/components/*.tsx`
+- [ ] `diceduc-web/features/finance/api/finance.ts`
+- [ ] `diceduc-web/features/finance/schemas/finance.ts`
 
 ## Testes
 

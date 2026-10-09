@@ -30,7 +30,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `academic` — `conaa-api/src/domain/academic/enterprise/`
+### Contexto `academic` — `diceduc-api/src/domain/academic/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -45,7 +45,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/academic/application/useCases/`
+### `diceduc-api/src/domain/academic/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -63,7 +63,7 @@ Regras de negócio principais:
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novo model `Horario`; enum `DayOfWeek`.
+- `diceduc-api/prisma/schema.prisma`: novo model `Horario`; enum `DayOfWeek`.
 - Repositório: `infra/database/prisma/repositories/prisma-horarios-repository.ts` (queries de conflito via `WHERE` sobreposição de intervalo).
 - Mapper: `infra/database/prisma/mappers/horario-mapper.ts`.
 
@@ -79,7 +79,7 @@ Regras de negócio principais:
 
 Perfis exigidos: `CreateHorarioUseCase`/`UpdateHorarioUseCase`/`DeleteHorarioUseCase` → `coordenação`; leitura de grade → `professor`/`coordenação`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/horarios/turmas/[turmaId]/page.tsx` — montagem da grade da turma, com destaque de conflito (`F1-E05-U01`).
 - `app/(portal)/horarios/minha-grade/page.tsx` — grade consolidada do professor logado (`F1-E05-U02`).
@@ -88,24 +88,24 @@ Perfis exigidos: `CreateHorarioUseCase`/`UpdateHorarioUseCase`/`DeleteHorarioUse
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/academic/enterprise/entities/horario.ts`
-- [ ] `conaa-api/src/domain/academic/enterprise/entities/valueObjects/day-of-week.ts`
-- [ ] `conaa-api/src/domain/academic/application/useCases/create-horario.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/update-horario.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/delete-horario.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/get-teacher-schedule.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/useCases/get-turma-schedule.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/academic/application/repositories/horarios-repository.ts`
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-horarios-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/horario-mapper.ts`
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (5 controllers, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/horario-presenter.ts`
-- [ ] `conaa-web/app/(portal)/horarios/turmas/[turmaId]/page.tsx`
-- [ ] `conaa-web/app/(portal)/horarios/minha-grade/page.tsx`
-- [ ] `conaa-web/features/academic/components/ScheduleGrid.tsx`, `HorarioForm.tsx`, `ConflictWarning.tsx`
-- [ ] `conaa-web/features/academic/api/horarios.ts`
-- [ ] `conaa-web/features/academic/schemas/horario.ts`
+- [ ] `diceduc-api/src/domain/academic/enterprise/entities/horario.ts`
+- [ ] `diceduc-api/src/domain/academic/enterprise/entities/valueObjects/day-of-week.ts`
+- [ ] `diceduc-api/src/domain/academic/application/useCases/create-horario.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/update-horario.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/delete-horario.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/get-teacher-schedule.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/useCases/get-turma-schedule.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/academic/application/repositories/horarios-repository.ts`
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-horarios-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/horario-mapper.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (5 controllers, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/horario-presenter.ts`
+- [ ] `diceduc-web/app/(portal)/horarios/turmas/[turmaId]/page.tsx`
+- [ ] `diceduc-web/app/(portal)/horarios/minha-grade/page.tsx`
+- [ ] `diceduc-web/features/academic/components/ScheduleGrid.tsx`, `HorarioForm.tsx`, `ConflictWarning.tsx`
+- [ ] `diceduc-web/features/academic/api/horarios.ts`
+- [ ] `diceduc-web/features/academic/schemas/horario.ts`
 
 ## Testes
 

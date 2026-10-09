@@ -1,4 +1,4 @@
-# Roadmap — Sistema de Gestão Escolar (CONAA)
+# Roadmap — Sistema de Gestão Escolar (DICEDUC)
 
 Roadmap derivado de [Funcionalidades para um Sistema de Gestão Escolar em Três Níveis.md](Funcionalidades%20para%20um%20Sistema%20de%20Gestão%20Escolar%20em%20Três%20Níveis.md), organizando os 3 níveis de funcionalidades em fases de release. Detalhamento de histórias e critérios de aceite está em [BACKLOG.md](BACKLOG.md).
 
@@ -10,7 +10,7 @@ Roadmap derivado de [Funcionalidades para um Sistema de Gestão Escolar em Três
 
 ## Sequenciamento
 
-O CONAA é **multi-tenant desde o primeiro momento da arquitetura**: `F1-E0A` (Group/School,
+O DICEDUC é **multi-tenant desde o primeiro momento da arquitetura**: `F1-E0A` (Group/School,
 isolamento por `groupId` e escopo de permissão por `schoolId`) é fundacional e roda logo após o
 bootstrap, **antes** de qualquer épico de domínio — nenhum contexto de negócio é implementado sem
 essa base pronta. Cadastros/SIS é pré-requisito de praticamente tudo (matrícula, turmas,

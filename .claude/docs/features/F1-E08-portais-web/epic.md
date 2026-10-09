@@ -14,7 +14,7 @@
 
 ## Objetivo
 
-Entregar o portal web (`conaa-web`) que expõe, por papel (responsável, professor, aluno), os dados já disponíveis na API dos épicos anteriores.
+Entregar o portal web (`diceduc-web`) que expõe, por papel (responsável, professor, aluno), os dados já disponíveis na API dos épicos anteriores.
 
 ## Histórias cobertas
 
@@ -24,7 +24,7 @@ Entregar o portal web (`conaa-web`) que expõe, por papel (responsável, profess
 
 ## Escopo / fora de escopo
 
-- **Dentro:** telas de consumo dos dados de F1-E01 a F1-E06 por papel, dentro de `conaa-web` (ver `arquitetura-frontend.md`).
+- **Dentro:** telas de consumo dos dados de F1-E01 a F1-E06 por papel, dentro de `diceduc-web` (ver `arquitetura-frontend.md`).
 - **Fora:** app mobile nativo (F2-E01), envio de comunicação por e-mail/SMS/WhatsApp (F2-E02 — aqui só exibe comunicados já existentes).
 
 ## Dependências e integrações

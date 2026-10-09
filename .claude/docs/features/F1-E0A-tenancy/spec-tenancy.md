@@ -22,7 +22,7 @@ domínio subsequente (F1-E01 em diante) vai consumir. **Leia primeiro
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `tenancy` — `conaa-api/src/domain/tenancy/enterprise/`
+### Contexto `tenancy` — `diceduc-api/src/domain/tenancy/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -40,11 +40,11 @@ Invariantes:
 - `School.groupId` deve referenciar um `Group` existente com `status = 'ACTIVE'`.
 - Um `Group` com `status = 'SUSPENDED'` bloqueia login de qualquer usuário vinculado a ele (verificado no `GroupScopeGuard`, não nesta entidade).
 - `logoUrl` é uma URL externa informada no onboarding (`ponytail:` sem upload próprio; entra quando houver um port de storage no projeto).
-- `primaryColor` é **opcional com fallback**, não "a cor do tenant": quando ausente em `School` e em `Group`, o frontend usa a cor padrão do design system — o backend nunca inventa uma cor. O valor é um hex simples (`string?`, sem VO próprio); toda a derivação para tokens CSS (contraste, variantes claro/escuro) é responsabilidade do `conaa-web`, não desta ficha — ver [design-system.md §5](../../../design-system.md#5-branding-por-tenant).
+- `primaryColor` é **opcional com fallback**, não "a cor do tenant": quando ausente em `School` e em `Group`, o frontend usa a cor padrão do design system — o backend nunca inventa uma cor. O valor é um hex simples (`string?`, sem VO próprio); toda a derivação para tokens CSS (contraste, variantes claro/escuro) é responsabilidade do `diceduc-web`, não desta ficha — ver [design-system.md §5](../../../design-system.md#5-branding-por-tenant).
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/tenancy/application/useCases/`
+### `diceduc-api/src/domain/tenancy/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ Regras de negócio principais:
   primeira vez.
 - `RegisterSchoolUseCase`: valida que `groupId` existe e está `ACTIVE` antes de criar a escola.
 - Quem pode chamar estes use cases é resolvido no controller: `PlatformAdminGuard` (ver seção
-  HTTP) — só a equipe CONAA cria groups/escolas no MVP, não há auto-cadastro público.
+  HTTP) — só a equipe DICEDUC cria groups/escolas no MVP, não há auto-cadastro público.
 - `GetTenantBrandingUseCase`: roda dentro de um `GroupContext` **preliminar** (só `groupId`,
   resolvido a partir do `groupSlug`) — o suficiente para localizar `School` por `slug` sem expor
   dado de outro group.
@@ -70,7 +70,7 @@ Regras de negócio principais:
 
 Esta é a parte mais importante da ficha — o contrato que **todos** os outros contextos vão usar.
 
-### `GroupContext` — `conaa-api/src/core/tenancy/group-context.ts`
+### `GroupContext` — `diceduc-api/src/core/tenancy/group-context.ts`
 
 ```ts
 export type GroupContext = {
@@ -86,7 +86,7 @@ chamado fora de uma requisição autenticada, já que isso indica um bug de wiri
 **Uma sessão sempre pertence a uma única escola** (decisão de produto): não existe lista de
 escolas permitidas, só a `schoolId` corrente — ver `arquitetura-ignite.md` §11.
 
-### `GroupScopeGuard` — `conaa-api/src/infra/auth/group-scope.guard.ts`
+### `GroupScopeGuard` — `diceduc-api/src/infra/auth/group-scope.guard.ts`
 
 - Roda **depois** do `JwtAuthGuard` já existente (`F1-E00`).
 - Lê `groupId`/`schoolId` do payload do access token (`@CurrentUser()` — `F1-E10` é quem emite
@@ -98,16 +98,16 @@ escolas permitidas, só a `schoolId` corrente — ver `arquitetura-ignite.md` §
 - Popula `GroupContext.run({ groupId, schoolId, allowedStudentIds }, () => next())`.
 - Se `Group.status = 'SUSPENDED'`, retorna `403` antes de prosseguir.
 
-### `PlatformAdminGuard` — `conaa-api/src/infra/auth/platform-admin.guard.ts`
+### `PlatformAdminGuard` — `diceduc-api/src/infra/auth/platform-admin.guard.ts`
 
-- Guard próprio para as rotas de onboarding (criação de `Group`/`School`) — só a equipe CONAA cria
+- Guard próprio para as rotas de onboarding (criação de `Group`/`School`) — só a equipe DICEDUC cria
   clientes no MVP, sem auto-cadastro público.
 - Compara o header `x-platform-key` com a env `PLATFORM_ADMIN_KEY` (schema Zod, string, mínimo 32
   caracteres) usando `crypto.timingSafeEqual` (evita timing attack numa comparação de segredo).
 - Combinado com `@Public()` (roda antes/fora do `JwtAuthGuard`/`GroupScopeGuard`) e com
   `@Throttle()` mais restritivo que o padrão (ver [arquitetura-ignite.md §12](../../../arquitetura-ignite.md#12-segurança-de-aplicação-baseline)).
 
-### Prisma Client Extension — `conaa-api/src/infra/database/prisma/extensions/tenant-scope.extension.ts`
+### Prisma Client Extension — `diceduc-api/src/infra/database/prisma/extensions/tenant-scope.extension.ts`
 
 - Aplicada ao `PrismaService` (`$extends`) para todo model que tiver `groupId` no schema.
 - **Leitura** (`findMany`, `findFirst`, `findUnique`→`findFirst` quando precisa filtrar, `count`,
@@ -128,7 +128,7 @@ os use cases de escrita dos épicos seguintes **não recebem `schoolId` como par
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novos models `Group`, `School` (sem `groupId`/`schoolId`
+- `diceduc-api/prisma/schema.prisma`: novos models `Group`, `School` (sem `groupId`/`schoolId`
   próprios); enums `GroupType`, `GroupStatus`, `SchoolStatus`. A partir desta ficha, **todo novo
   model de negócio criado em qualquer épico seguinte inclui `groupId String` indexado** (e
   `schoolId String` indexado, se operacional) — convenção registrada em `arquitetura-ignite.md §11`.
@@ -147,15 +147,15 @@ os use cases de escrita dos épicos seguintes **não recebem `schoolId` como par
 
 O onboarding (`POST /groups`, `POST /groups/:groupId/schools`) roda sem `GroupScopeGuard` porque
 ainda não existe usuário/sessão vinculada ao `Group` que está sendo criado — em vez disso, exige a
-chave de administrador da plataforma (`PlatformAdminGuard`). Só a equipe CONAA cria groups/escolas
+chave de administrador da plataforma (`PlatformAdminGuard`). Só a equipe DICEDUC cria groups/escolas
 no MVP; a criação do primeiro usuário admin de cada group é `ProvisionGroupAdmin`, em `F1-E10`.
-Exemplo de uso via `curl` documentado no README do `conaa-api` (não há tela de onboarding no
-`conaa-web` — ver Frontend).
+Exemplo de uso via `curl` documentado no README do `diceduc-api` (não há tela de onboarding no
+`diceduc-web` — ver Frontend).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
-Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe CONAA direto na API
-(ver seção HTTP). O `conaa-web` só consome o que já existe:
+Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe DICEDUC direto na API
+(ver seção HTTP). O `diceduc-web` só consome o que já existe:
 
 - `app/[grupo]/[escola]/(portal)/admin/escolas/page.tsx` — lista de escolas do group logado (`GET /schools`), tela administrativa (não há mais seletor de escola — ver `arquitetura-frontend.md` §10, uma sessão é sempre de uma escola).
 - `features/tenancy/api/tenancy.ts` (`listGroupSchools`, `getTenantBranding`), `features/tenancy/schemas/tenancy.ts`.
@@ -163,37 +163,37 @@ Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/tenancy/enterprise/entities/group.ts`
-- [ ] `conaa-api/src/domain/tenancy/enterprise/entities/school.ts`
-- [ ] `conaa-api/src/domain/tenancy/enterprise/entities/valueObjects/slug.ts`
-- [ ] `conaa-api/src/domain/tenancy/enterprise/entities/valueObjects/group-type.ts`
-- [ ] `conaa-api/src/domain/tenancy/enterprise/entities/valueObjects/group-status.ts`
-- [ ] `conaa-api/src/domain/tenancy/enterprise/entities/valueObjects/school-status.ts`
-- [ ] `conaa-api/src/domain/tenancy/application/useCases/register-group.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/tenancy/application/useCases/register-school.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/tenancy/application/useCases/list-group-schools.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/tenancy/application/useCases/get-tenant-branding.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/tenancy/application/repositories/groups-repository.ts`
-- [ ] `conaa-api/src/domain/tenancy/application/repositories/schools-repository.ts`
-- [ ] `conaa-api/src/core/tenancy/group-context.ts`
-- [ ] `conaa-api/src/infra/auth/group-scope.guard.ts`
-- [ ] `conaa-api/src/infra/auth/platform-admin.guard.ts`
-- [ ] `conaa-api/src/infra/auth/allow-all-students-provider.ts` (stub, até `F1-E09` existir)
-- [ ] `conaa-api/prisma/schema.prisma` (editar — models `Group`/`School` + convenção `groupId`/`schoolId` para todo model futuro)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-groups-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-schools-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/extensions/tenant-scope.extension.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/group-mapper.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/school-mapper.ts`
-- [ ] `conaa-api/src/infra/http/controllers/register-group.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/register-school.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/list-group-schools.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/get-tenant-branding.controller.ts`
-- [ ] `conaa-api/src/infra/http/presenters/group-presenter.ts`, `school-presenter.ts`
-- [ ] `conaa-web/app/[grupo]/[escola]/(portal)/admin/escolas/page.tsx`
-- [ ] `conaa-web/features/tenancy/api/tenancy.ts`
-- [ ] `conaa-web/features/tenancy/schemas/tenancy.ts`
-- [ ] `conaa-web/shared/auth/useSession.ts` (editar)
+- [ ] `diceduc-api/src/domain/tenancy/enterprise/entities/group.ts`
+- [ ] `diceduc-api/src/domain/tenancy/enterprise/entities/school.ts`
+- [ ] `diceduc-api/src/domain/tenancy/enterprise/entities/valueObjects/slug.ts`
+- [ ] `diceduc-api/src/domain/tenancy/enterprise/entities/valueObjects/group-type.ts`
+- [ ] `diceduc-api/src/domain/tenancy/enterprise/entities/valueObjects/group-status.ts`
+- [ ] `diceduc-api/src/domain/tenancy/enterprise/entities/valueObjects/school-status.ts`
+- [ ] `diceduc-api/src/domain/tenancy/application/useCases/register-group.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/tenancy/application/useCases/register-school.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/tenancy/application/useCases/list-group-schools.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/tenancy/application/useCases/get-tenant-branding.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/tenancy/application/repositories/groups-repository.ts`
+- [ ] `diceduc-api/src/domain/tenancy/application/repositories/schools-repository.ts`
+- [ ] `diceduc-api/src/core/tenancy/group-context.ts`
+- [ ] `diceduc-api/src/infra/auth/group-scope.guard.ts`
+- [ ] `diceduc-api/src/infra/auth/platform-admin.guard.ts`
+- [ ] `diceduc-api/src/infra/auth/allow-all-students-provider.ts` (stub, até `F1-E09` existir)
+- [ ] `diceduc-api/prisma/schema.prisma` (editar — models `Group`/`School` + convenção `groupId`/`schoolId` para todo model futuro)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-groups-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-schools-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/extensions/tenant-scope.extension.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/group-mapper.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/school-mapper.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/register-group.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/register-school.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/list-group-schools.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/get-tenant-branding.controller.ts`
+- [ ] `diceduc-api/src/infra/http/presenters/group-presenter.ts`, `school-presenter.ts`
+- [ ] `diceduc-web/app/[grupo]/[escola]/(portal)/admin/escolas/page.tsx`
+- [ ] `diceduc-web/features/tenancy/api/tenancy.ts`
+- [ ] `diceduc-web/features/tenancy/schemas/tenancy.ts`
+- [ ] `diceduc-web/shared/auth/useSession.ts` (editar)
 
 ## Testes
 
@@ -202,7 +202,7 @@ Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe
   por `groupId`/`schoolId`/`allowedStudentIds` manualmente, replicando a extension — documentar
   isso no arquivo de cada repositório in-memory subsequente).
 - Factories: `make-group.ts`, `make-school.ts`.
-- Unit specs: `RegisterSchoolUseCase` rejeita `groupId` inexistente ou `SUSPENDED`; `RegisterGroupUseCase`/`RegisterSchoolUseCase` rejeitam `slug` duplicado; `GetTenantBrandingUseCase` retorna `ResourceNotFoundError` para slug inexistente, grupo `SUSPENDED` ou escola `INACTIVE`; `GetTenantBrandingUseCase` sem `primaryColor` em `School` nem em `Group` devolve o campo ausente (não uma cor default) — quem decide o fallback visual é o `conaa-web`, não o use case.
+- Unit specs: `RegisterSchoolUseCase` rejeita `groupId` inexistente ou `SUSPENDED`; `RegisterGroupUseCase`/`RegisterSchoolUseCase` rejeitam `slug` duplicado; `GetTenantBrandingUseCase` retorna `ResourceNotFoundError` para slug inexistente, grupo `SUSPENDED` ou escola `INACTIVE`; `GetTenantBrandingUseCase` sem `primaryColor` em `School` nem em `Group` devolve o campo ausente (não uma cor default) — quem decide o fallback visual é o `diceduc-web`, não o use case.
 - Teste de integração dedicado da extension: criar duas entidades de teste em `Group`s diferentes
   via Prisma real, provar que uma query sem filtro explícito (usando o client já estendido) só
   retorna a do `Group`/escola do contexto corrente — este teste é a prova de que o isolamento

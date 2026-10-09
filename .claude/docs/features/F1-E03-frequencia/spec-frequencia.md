@@ -35,7 +35,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `attendance` — `conaa-api/src/domain/attendance/enterprise/`
+### Contexto `attendance` — `diceduc-api/src/domain/attendance/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -50,7 +50,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/attendance/application/useCases/`
+### `diceduc-api/src/domain/attendance/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -67,7 +67,7 @@ Regras de negócio principais:
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novo model `AttendanceRecord` (índice único em `studentId + turmaId + disciplinaId + date`); enum `AttendanceStatus`.
+- `diceduc-api/prisma/schema.prisma`: novo model `AttendanceRecord` (índice único em `studentId + turmaId + disciplinaId + date`); enum `AttendanceStatus`.
 - Repositório: `infra/database/prisma/repositories/prisma-attendance-records-repository.ts`.
 - Mapper: `infra/database/prisma/mappers/attendance-record-mapper.ts`.
 
@@ -81,7 +81,7 @@ Regras de negócio principais:
 
 Perfis exigidos: `RecordAttendanceUseCase` → `professor` da turma; `GetAttendanceBelowThresholdUseCase` → `coordenação`; `JustifyAbsenceUseCase` → `secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/frequencia/turmas/[turmaId]/chamada/page.tsx` — chamada do dia (`F1-E03-U01`), tela do professor.
 - `app/(portal)/frequencia/abaixo-do-limite/page.tsx` — lista filtrável por turma (`F1-E03-U02`), tela da coordenação.
@@ -90,24 +90,24 @@ Perfis exigidos: `RecordAttendanceUseCase` → `professor` da turma; `GetAttenda
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/attendance/enterprise/entities/attendance-record.ts`
-- [ ] `conaa-api/src/domain/attendance/enterprise/entities/valueObjects/attendance-status.ts`
-- [ ] `conaa-api/src/domain/attendance/application/useCases/record-attendance.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/attendance/application/useCases/get-attendance-below-threshold.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/attendance/application/useCases/justify-absence.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/attendance/application/repositories/attendance-records-repository.ts`
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-attendance-records-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/attendance-record-mapper.ts`
-- [ ] `conaa-api/src/infra/http/controllers/record-attendance.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/get-attendance-below-threshold.controller.ts`
-- [ ] `conaa-api/src/infra/http/controllers/justify-absence.controller.ts`
-- [ ] `conaa-api/src/infra/http/presenters/attendance-record-presenter.ts`
-- [ ] `conaa-web/app/(portal)/frequencia/turmas/[turmaId]/chamada/page.tsx`
-- [ ] `conaa-web/app/(portal)/frequencia/abaixo-do-limite/page.tsx`
-- [ ] `conaa-web/features/attendance/components/AttendanceSheet.tsx`, `BelowThresholdList.tsx`, `JustifyAbsenceDialog.tsx`
-- [ ] `conaa-web/features/attendance/api/attendance.ts`
-- [ ] `conaa-web/features/attendance/schemas/attendance.ts`
+- [ ] `diceduc-api/src/domain/attendance/enterprise/entities/attendance-record.ts`
+- [ ] `diceduc-api/src/domain/attendance/enterprise/entities/valueObjects/attendance-status.ts`
+- [ ] `diceduc-api/src/domain/attendance/application/useCases/record-attendance.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/attendance/application/useCases/get-attendance-below-threshold.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/attendance/application/useCases/justify-absence.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/attendance/application/repositories/attendance-records-repository.ts`
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-attendance-records-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/attendance-record-mapper.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/record-attendance.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/get-attendance-below-threshold.controller.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/justify-absence.controller.ts`
+- [ ] `diceduc-api/src/infra/http/presenters/attendance-record-presenter.ts`
+- [ ] `diceduc-web/app/(portal)/frequencia/turmas/[turmaId]/chamada/page.tsx`
+- [ ] `diceduc-web/app/(portal)/frequencia/abaixo-do-limite/page.tsx`
+- [ ] `diceduc-web/features/attendance/components/AttendanceSheet.tsx`, `BelowThresholdList.tsx`, `JustifyAbsenceDialog.tsx`
+- [ ] `diceduc-web/features/attendance/api/attendance.ts`
+- [ ] `diceduc-web/features/attendance/schemas/attendance.ts`
 
 ## Testes
 

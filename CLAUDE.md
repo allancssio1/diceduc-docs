@@ -1,4 +1,4 @@
-# CLAUDE.md — Router do CONAA Controle Escolar
+# CLAUDE.md — Router do DICEDUC Controle Escolar
 
 > Este arquivo é o **ponto de entrada mínimo** para qualquer agente que for implementar código neste projeto. Leia-o primeiro, sempre.
 
@@ -18,7 +18,7 @@ Se a pasta do épico não existir ainda, ou existir só como ⚪ (sem spec), **p
 
 ## O que é este projeto
 
-CONAA é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o quê" e o "por quê") está em `.claude/ROADMAP.md`/`.claude/BACKLOG.md`; este arquivo e as fichas cobrem o "como implementar".
+DICEDUC é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o quê" e o "por quê") está em `.claude/ROADMAP.md`/`.claude/BACKLOG.md`; este arquivo e as fichas cobrem o "como implementar".
 
 ## Stack e regra de dependência
 
@@ -31,22 +31,22 @@ CONAA é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o
   ```
 
 - **Frontend:** Next.js 16.3.
-- **Três repositórios git independentes, lado a lado** dentro da pasta de trabalho `conaa-controle-escolar/` (que não é repo git, só agrupa): `conaa-docs` (este — hub de documentação/planejamento, sem código de aplicação, só `.claude/` e este `CLAUDE.md`), `conaa-api` (backend) e `conaa-web` (frontend). `conaa-api`/`conaa-web` são criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md` **como irmãos de `conaa-docs`, nunca dentro dele**. Sem ferramenta de monorepo — cada repo resolve suas próprias dependências.
+- **Três repositórios git independentes, lado a lado** dentro da pasta de trabalho `diceduc-controle-escolar/` (que não é repo git, só agrupa): `diceduc-docs` (este — hub de documentação/planejamento, sem código de aplicação, só `.claude/` e este `CLAUDE.md`), `diceduc-api` (backend) e `diceduc-web` (frontend). `diceduc-api`/`diceduc-web` são criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md` **como irmãos de `diceduc-docs`, nunca dentro dele**. Sem ferramenta de monorepo — cada repo resolve suas próprias dependências.
 
 ## Mapa de pastas
 
 Layout em disco (workspace):
 
 ```
-conaa-controle-escolar/      ← pasta de trabalho (sem git próprio)
-  conaa-docs/                ← repo git: docs e planejamento (este)
-  conaa-api/                 ← repo git: NestJS + Prisma
-  conaa-web/                 ← repo git: Next.js 16.3
+diceduc-controle-escolar/      ← pasta de trabalho (sem git próprio)
+  diceduc-docs/                ← repo git: docs e planejamento (este)
+  diceduc-api/                 ← repo git: NestJS + Prisma
+  diceduc-web/                 ← repo git: Next.js 16.3
 ```
 
-Caminhos que começam com `conaa-api/` ou `conaa-web/` nas fichas são relativos à raiz do workspace (`conaa-controle-escolar/`) — ou seja, `../conaa-api/...` visto de dentro do `conaa-docs`. Nunca crie esses diretórios dentro do `conaa-docs`.
+Caminhos que começam com `diceduc-api/` ou `diceduc-web/` nas fichas são relativos à raiz do workspace (`diceduc-controle-escolar/`) — ou seja, `../diceduc-api/...` visto de dentro do `diceduc-docs`. Nunca crie esses diretórios dentro do `diceduc-docs`.
 
-Repositório `conaa-api`:
+Repositório `diceduc-api`:
 
 ```
 src/
@@ -67,15 +67,15 @@ prisma/
   schema.prisma
 ```
 
-Repositório `conaa-web`:
+Repositório `diceduc-web`:
 
 ```
 ...                        ver .claude/arquitetura-frontend.md
 ```
 
-Nas fichas de feature, caminhos de rota escritos como `app/(portal)/...`/`app/(public)/...` são relativos a `app/[grupo]/[escola]/` — toda navegação do `conaa-web` fica sob o tenant identificado na URL (ver [.claude/arquitetura-frontend.md §2](.claude/arquitetura-frontend.md#2-estrutura-de-pastas)).
+Nas fichas de feature, caminhos de rota escritos como `app/(portal)/...`/`app/(public)/...` são relativos a `app/[grupo]/[escola]/` — toda navegação do `diceduc-web` fica sob o tenant identificado na URL (ver [.claude/arquitetura-frontend.md §2](.claude/arquitetura-frontend.md#2-estrutura-de-pastas)).
 
-Este repositório (`conaa-docs`):
+Este repositório (`diceduc-docs`):
 
 ```
 CLAUDE.md
@@ -87,9 +87,9 @@ CLAUDE.md
         spec-*.md               nível de implementação (quando já especificado) — comece por aqui
 ```
 
-## Bounded contexts do CONAA (backend)
+## Bounded contexts do DICEDUC (backend)
 
-Cada contexto vive em `conaa-api/src/domain/<contexto>/`. Mapeamento épico → contexto (ver `.claude/docs/features/README.md` para a lista completa e status):
+Cada contexto vive em `diceduc-api/src/domain/<contexto>/`. Mapeamento épico → contexto (ver `.claude/docs/features/README.md` para a lista completa e status):
 
 | Contexto | Épicos | Conteúdo |
 | --- | --- | --- |

@@ -1,6 +1,6 @@
 # Arquitetura de referência: nest-clean-ignite
 
-> Documento gerado a partir da análise do projeto `nest-clean-ignite` (curso Rocketseat), para servir de referência arquitetural ao `conaa-controle-escolar`. Stack: NestJS + Prisma + TypeScript, seguindo Clean Architecture com DDD leve.
+> Documento gerado a partir da análise do projeto `nest-clean-ignite` (curso Rocketseat), para servir de referência arquitetural ao `diceduc-controle-escolar`. Stack: NestJS + Prisma + TypeScript, seguindo Clean Architecture com DDD leve.
 
 ## 1. Visão geral
 
@@ -171,7 +171,7 @@ export abstract class QuestionsRepository {
 
 ## 11. Multi-tenancy (fundacional desde o dia zero)
 
-O CONAA é **multi-tenant desde o início** — não um retrofit de fase posterior. O tenant é o
+O DICEDUC é **multi-tenant desde o início** — não um retrofit de fase posterior. O tenant é o
 **`Group`** (grupo): uma organização que pode ser uma secretaria, um município, uma rede ou uma
 escola isolada (o campo `type` é só um rótulo informativo, não muda o comportamento). Um `Group`
 tem uma ou mais `School` (escolas). Bounded context `tenancy` — ver
@@ -236,7 +236,7 @@ propriedade da camada de infra, não uma disciplina que cada repositório precis
 ### Personalização por tenant (slugs)
 
 `Group.slug` (único global) e `School.slug` (único por group) identificam o tenant na própria URL
-do `conaa-web`: `app/[grupo]/[escola]/…` (ver `arquitetura-frontend.md` §2). Uma rota pública
+do `diceduc-web`: `app/[grupo]/[escola]/…` (ver `arquitetura-frontend.md` §2). Uma rota pública
 (`GET /public/branding/:groupSlug/:schoolSlug`, `F1-E0A`) devolve nome/logo/cor para a tela de
 login montar a identidade visual antes de qualquer autenticação.
 
@@ -267,7 +267,7 @@ Baseline aplicado desde `F1-E00` (bootstrap) e válido para todos os épicos seg
 ficha própria, é uma convenção transversal, como o multi-tenancy do §11.
 
 - **Headers e superfície de borda:** `helmet()` aplicado no `main.ts`. Sem `app.enableCors()` — o
-  `conaa-web` nunca é chamado direto do browser (padrão BFF, ver `arquitetura-frontend.md` §6), só
+  `diceduc-web` nunca é chamado direto do browser (padrão BFF, ver `arquitetura-frontend.md` §6), só
   o servidor do Next chama a API, então CORS de browser não se aplica.
 - **Rate limiting:** `@nestjs/throttler` global — 100 req/min por IP nas rotas autenticadas, 5/min
   nas rotas públicas sensíveis (`POST /sessions`, `/sessions/refresh`, `/password-resets`).
@@ -295,7 +295,7 @@ ficha própria, é uma convenção transversal, como o multi-tenancy do §11.
   quebraria os índices únicos por `groupId`, como o de CPF). Backup com restauração testada
   **fica fora do MVP**, registrado como pendência da Fase 2 em `ROADMAP.md`.
 
-## O que aproveitar no `conaa-controle-escolar`
+## O que aproveitar no `diceduc-controle-escolar`
 
 - Separar `domain` (regras de negócio puras) de `infra` (Nest/Prisma/HTTP) desde o início evita acoplamento e facilita testes unitários rápidos (sem banco).
 - Usar `Either` para erros de negócio esperados (aluno já matriculado, turma lotada, etc.) e reservar exceções para erros realmente excepcionais.

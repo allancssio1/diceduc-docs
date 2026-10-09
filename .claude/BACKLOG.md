@@ -1,4 +1,4 @@
-# Backlog — Sistema de Gestão Escolar (CONAA)
+# Backlog — Sistema de Gestão Escolar (DICEDUC)
 
 Backlog detalhado derivado de [ROADMAP.md](ROADMAP.md), com base em [Funcionalidades para um Sistema de Gestão Escolar em Três Níveis.md](Funcionalidades%20para%20um%20Sistema%20de%20Gestão%20Escolar%20em%20Três%20Níveis.md).
 
@@ -92,7 +92,7 @@ para manter minha conta segura se suspeitar de acesso indevido.
 - [ ] Existe uma ação de "sair de todos os dispositivos" que invalida todas as sessões, exceto a atual (ou todas, dependendo da implementação).
 
 #### F1-E10-U05
-Como **equipe CONAA**, quero criar ou redefinir o administrador de uma escola/rede recém-onboardada,
+Como **equipe DICEDUC**, quero criar ou redefinir o administrador de uma escola/rede recém-onboardada,
 para entregar o acesso inicial ao cliente sem depender de auto-cadastro.
 
 **Critérios de aceite:**

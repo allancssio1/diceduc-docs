@@ -22,7 +22,7 @@ Dar a cada pessoa cadastrada uma conta de acesso: login, sessão (access + refre
 - `F1-E10-U02` — Secretaria cria acesso de uma pessoa já cadastrada, com senha temporária.
 - `F1-E10-U03` — Secretaria redefine senha ou desativa conta, com efeito imediato.
 - `F1-E10-U04` — Usuário troca a própria senha e revoga as demais sessões.
-- `F1-E10-U05` — Equipe CONAA cria/redefine o admin de um group.
+- `F1-E10-U05` — Equipe DICEDUC cria/redefine o admin de um group.
 - `F1-E10-U06` — Recuperação de senha por e-mail — pronta, desligada por flag no MVP.
 
 ## Decisões resolvidas nesta spec
@@ -30,9 +30,9 @@ Dar a cada pessoa cadastrada uma conta de acesso: login, sessão (access + refre
 - **Sessão:** access token JWT RS256 de 15 minutos + refresh token opaco (256 bits aleatórios, nunca um JWT) de 7 dias, guardado no banco só como hash (`bcryptjs`). Sem `tokenVersion` — revogar é apagar/marcar `revokedAt` nos `RefreshToken`s do usuário; o pior caso é um access token já emitido, que ainda vale até 15 min.
 - **Rotação de refresh:** cada `POST /sessions/refresh` gera um refresh novo e marca o usado como `replacedAt`. Reuso de um refresh já substituído (fora de uma tolerância de 30s, que cobre duas abas renovando ao mesmo tempo) é tratado como indício de roubo: revoga todos os refresh tokens daquele usuário.
 - **Identificador de login:** `email` único **por group**, não global — a mesma pessoa (ex.: um professor que leciona em duas secretarias) tem uma conta e uma senha independentes em cada group. O login recebe `groupSlug`/`schoolSlug` (da URL) + `email`/`password`; resolve o group pelo slug antes de procurar o usuário.
-- **Uma escola por sessão:** o login exige que o usuário tenha acesso à escola da URL (`ListMyAccessibleSchoolsUseCase`/`UserRolesRepository.canAccessSchool`, de `F1-E09`) e emite o access token já com aquele `schoolId`. Trocar de escola é um novo login (mecanismo no `conaa-web`, `arquitetura-frontend.md` §6) — esta ficha só garante que o backend recusa (`SchoolAccessDeniedError`) quem tenta entrar numa escola sem vínculo.
+- **Uma escola por sessão:** o login exige que o usuário tenha acesso à escola da URL (`ListMyAccessibleSchoolsUseCase`/`UserRolesRepository.canAccessSchool`, de `F1-E09`) e emite o access token já com aquele `schoolId`. Trocar de escola é um novo login (mecanismo no `diceduc-web`, `arquitetura-frontend.md` §6) — esta ficha só garante que o backend recusa (`SchoolAccessDeniedError`) quem tenta entrar numa escola sem vínculo.
 - **Senha temporária:** gerada aleatoriamente (ex.: 12 caracteres, alfanumérico), mostrada **uma única vez** para quem criou a conta (a API nunca a devolve de novo). Expira em 72h; se expirar sem uso, a secretaria gera outra via `ResetUserPasswordUseCase`. `mustChangePassword = true` até o primeiro acesso ser concluído.
-- **Recuperação por e-mail:** implementada e testada como qualquer outra funcionalidade, mas atrás da flag de env `PASSWORD_RESET_ENABLED` (default `false`). Com a flag desligada, as rotas HTTP respondem `404` e o `conaa-web` nem renderiza as telas/link — ativar no futuro é só mudar a flag e configurar SMTP, sem reabrir código.
+- **Recuperação por e-mail:** implementada e testada como qualquer outra funcionalidade, mas atrás da flag de env `PASSWORD_RESET_ENABLED` (default `false`). Com a flag desligada, as rotas HTTP respondem `404` e o `diceduc-web` nem renderiza as telas/link — ativar no futuro é só mudar a flag e configurar SMTP, sem reabrir código.
 - **Anti-enumeração:** toda resposta que poderia revelar se um e-mail existe (login, pedido de recuperação) usa a mesma mensagem genérica de erro e o mesmo tempo de resposta (comparação com um hash fictício quando o usuário não existe).
 
 ## Multi-tenancy
@@ -46,7 +46,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `iam` — `conaa-api/src/domain/iam/enterprise/`
+### Contexto `iam` — `diceduc-api/src/domain/iam/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/iam/application/useCases/`
+### `diceduc-api/src/domain/iam/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -107,7 +107,7 @@ Regras de negócio principais:
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novos models `User` (índice único composto `groupId + email`), `RefreshToken`, `PasswordResetToken`; enums `UserStatus`, `PersonType`.
+- `diceduc-api/prisma/schema.prisma`: novos models `User` (índice único composto `groupId + email`), `RefreshToken`, `PasswordResetToken`; enums `UserStatus`, `PersonType`.
 - Repositórios: `prisma-users-repository.ts`, `prisma-refresh-tokens-repository.ts`, `prisma-password-reset-tokens-repository.ts` em `infra/database/prisma/repositories/`.
 - Mappers: `user-mapper.ts`, `refresh-token-mapper.ts`, `password-reset-token-mapper.ts`.
 
@@ -130,73 +130,73 @@ Regras de negócio principais:
 | `POST /password-resets` (atrás da flag) | `request-password-reset.controller.ts` | `{ groupSlug, schoolSlug, email }` | — (204) | `@Public()` + `@Throttle`; `404` se `PASSWORD_RESET_ENABLED=false` |
 | `POST /password-resets/confirm` (atrás da flag) | `reset-password-with-token.controller.ts` | `{ token, newPassword }` | — (204) | idem |
 
-**Nota sobre onde fica o refresh token:** o corpo da resposta HTTP devolve `accessToken` e (só nas 3 rotas de emissão de sessão) `refreshToken`; é o **`conaa-web`** quem grava os dois em cookies httpOnly — a API em si não seta cookie (ela é chamada só pelo servidor do Next, nunca pelo browser, ver `arquitetura-frontend.md` §6). O contrato aqui é JSON puro, como qualquer outra rota.
+**Nota sobre onde fica o refresh token:** o corpo da resposta HTTP devolve `accessToken` e (só nas 3 rotas de emissão de sessão) `refreshToken`; é o **`diceduc-web`** quem grava os dois em cookies httpOnly — a API em si não seta cookie (ela é chamada só pelo servidor do Next, nunca pelo browser, ver `arquitetura-frontend.md` §6). O contrato aqui é JSON puro, como qualquer outra rota.
 
 Perfis exigidos: `POST /users`, `GET /users`, `POST /users/:userId/password-reset`, `PATCH /users/:userId/status` → `secretaria`/`admin` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão). Demais rotas autenticadas exigem só sessão válida (qualquer papel).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 Tudo sob `app/[grupo]/[escola]/`:
 
-- `app/[grupo]/[escola]/(public)/login/page.tsx` (editar) — mostra nome/logo/cor do branding (`F1-E0A`); Server Action envia `groupSlug`/`schoolSlug` + credenciais a `POST /sessions` e grava `conaa_access`/`conaa_refresh` (`Path=/{grupo}`); texto "Esqueceu a senha? Procure a secretaria" — vira link para `/esqueci-senha` quando `PASSWORD_RESET_ENABLED=true` (env do próprio `conaa-web`).
+- `app/[grupo]/[escola]/(public)/login/page.tsx` (editar) — mostra nome/logo/cor do branding (`F1-E0A`); Server Action envia `groupSlug`/`schoolSlug` + credenciais a `POST /sessions` e grava `diceduc_access`/`diceduc_refresh` (`Path=/{grupo}`); texto "Esqueceu a senha? Procure a secretaria" — vira link para `/esqueci-senha` quando `PASSWORD_RESET_ENABLED=true` (env do próprio `diceduc-web`).
 - `app/[grupo]/[escola]/(public)/primeiro-acesso/page.tsx` — formulário de `CompleteFirstAccessUseCase`.
 - `app/[grupo]/[escola]/(public)/esqueci-senha/page.tsx` e `.../redefinir-senha/page.tsx` — chamam `notFound()` logo no topo quando `PASSWORD_RESET_ENABLED=false`.
 - `app/[grupo]/[escola]/(portal)/minha-conta/page.tsx` — trocar senha (`ChangePasswordUseCase`), botão "sair de todos os dispositivos" (`RevokeMySessionsUseCase`), lista das outras escolas do group a que o usuário tem acesso (links, com aviso de que abrir exige novo login).
 - `app/[grupo]/[escola]/(portal)/admin/usuarios/page.tsx` — lista de usuários, criar acesso (mostra a senha temporária **uma vez**, com botão de copiar), redefinir senha, ativar/desativar.
 - `shared/auth/session.ts` (`server-only`) — `getSession()` (`cache()` do React, chama `GET /me`), helpers de cookie.
-- `shared/api/client.ts` (editar) — injeta `Bearer` do `conaa_access`; em `401`, propaga para o `proxy.ts` tratar (apaga cookies, redireciona).
+- `shared/api/client.ts` (editar) — injeta `Bearer` do `diceduc_access`; em `401`, propaga para o `proxy.ts` tratar (apaga cookies, redireciona).
 - `proxy.ts` (editar) — renova o access quando perto de expirar (`POST /sessions/refresh`), e desloga se o `schoolId` da sessão não bate com a escola da URL (ver `arquitetura-frontend.md` §6).
 - `features/iam/api/iam.ts` (`login`, `completeFirstAccess`, `changePassword`, `revokeMySessions`, `createUserAccount`, `listUsers`, `resetUserPassword`, `setUserStatus`, `requestPasswordReset`, `resetPasswordWithToken`), `features/iam/schemas/iam.ts`.
-- `.env.example` do `conaa-web` ganha `PASSWORD_RESET_ENABLED`.
+- `.env.example` do `diceduc-web` ganha `PASSWORD_RESET_ENABLED`.
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/user.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/refresh-token.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/password-reset-token.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/user-status.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/person-type.ts`
-- [ ] `conaa-api/src/domain/iam/application/useCases/authenticate.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/complete-first-access.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/refresh-session.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/logout.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/revoke-my-sessions.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/get-me.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/change-password.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/create-user-account.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/list-users.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/reset-user-password.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/set-user-status.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/provision-group-admin.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/request-password-reset.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/reset-password-with-token.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/repositories/users-repository.ts`
-- [ ] `conaa-api/src/domain/iam/application/repositories/refresh-tokens-repository.ts`
-- [ ] `conaa-api/src/domain/iam/application/repositories/password-reset-tokens-repository.ts`
-- [ ] `conaa-api/src/core/mail/mailer.ts`
-- [ ] `conaa-api/src/infra/mail/console-mailer.ts`
-- [ ] `conaa-api/src/infra/mail/smtp-mailer.ts`
-- [ ] `conaa-api/src/infra/env/env.ts` (editar — `PASSWORD_RESET_ENABLED` + variáveis de SMTP condicionais)
-- [ ] `conaa-api/src/infra/auth/jwt.strategy.ts` (editar — payload `{ sub, groupId, schoolId }`)
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-users-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-refresh-tokens-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/prisma-password-reset-tokens-repository.ts`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/user-mapper.ts`, `refresh-token-mapper.ts`, `password-reset-token-mapper.ts`
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (13 controllers, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/user-presenter.ts`, `me-presenter.ts`
-- [ ] `conaa-web/app/[grupo]/[escola]/(public)/login/page.tsx` (editar)
-- [ ] `conaa-web/app/[grupo]/[escola]/(public)/primeiro-acesso/page.tsx`
-- [ ] `conaa-web/app/[grupo]/[escola]/(public)/esqueci-senha/page.tsx`
-- [ ] `conaa-web/app/[grupo]/[escola]/(public)/redefinir-senha/page.tsx`
-- [ ] `conaa-web/app/[grupo]/[escola]/(portal)/minha-conta/page.tsx`
-- [ ] `conaa-web/app/[grupo]/[escola]/(portal)/admin/usuarios/page.tsx`
-- [ ] `conaa-web/shared/auth/session.ts`
-- [ ] `conaa-web/shared/api/client.ts` (editar)
-- [ ] `conaa-web/proxy.ts` (editar)
-- [ ] `conaa-web/features/iam/api/iam.ts`
-- [ ] `conaa-web/features/iam/schemas/iam.ts`
-- [ ] `conaa-web/.env.example` (editar)
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/user.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/refresh-token.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/password-reset-token.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/user-status.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/person-type.ts`
+- [ ] `diceduc-api/src/domain/iam/application/useCases/authenticate.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/complete-first-access.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/refresh-session.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/logout.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/revoke-my-sessions.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/get-me.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/change-password.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/create-user-account.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/list-users.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/reset-user-password.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/set-user-status.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/provision-group-admin.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/request-password-reset.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/reset-password-with-token.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/repositories/users-repository.ts`
+- [ ] `diceduc-api/src/domain/iam/application/repositories/refresh-tokens-repository.ts`
+- [ ] `diceduc-api/src/domain/iam/application/repositories/password-reset-tokens-repository.ts`
+- [ ] `diceduc-api/src/core/mail/mailer.ts`
+- [ ] `diceduc-api/src/infra/mail/console-mailer.ts`
+- [ ] `diceduc-api/src/infra/mail/smtp-mailer.ts`
+- [ ] `diceduc-api/src/infra/env/env.ts` (editar — `PASSWORD_RESET_ENABLED` + variáveis de SMTP condicionais)
+- [ ] `diceduc-api/src/infra/auth/jwt.strategy.ts` (editar — payload `{ sub, groupId, schoolId }`)
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-users-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-refresh-tokens-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/prisma-password-reset-tokens-repository.ts`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/user-mapper.ts`, `refresh-token-mapper.ts`, `password-reset-token-mapper.ts`
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (13 controllers, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/user-presenter.ts`, `me-presenter.ts`
+- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/login/page.tsx` (editar)
+- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/primeiro-acesso/page.tsx`
+- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/esqueci-senha/page.tsx`
+- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/redefinir-senha/page.tsx`
+- [ ] `diceduc-web/app/[grupo]/[escola]/(portal)/minha-conta/page.tsx`
+- [ ] `diceduc-web/app/[grupo]/[escola]/(portal)/admin/usuarios/page.tsx`
+- [ ] `diceduc-web/shared/auth/session.ts`
+- [ ] `diceduc-web/shared/api/client.ts` (editar)
+- [ ] `diceduc-web/proxy.ts` (editar)
+- [ ] `diceduc-web/features/iam/api/iam.ts`
+- [ ] `diceduc-web/features/iam/schemas/iam.ts`
+- [ ] `diceduc-web/.env.example` (editar)
 
 ## Testes
 

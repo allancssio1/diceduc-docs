@@ -35,7 +35,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/reporting/application/useCases/`
+### `diceduc-api/src/domain/reporting/application/useCases/`
 
 | Use case | Arquivo | Entrada | Repositórios injetados | Saída (`Either`) |
 | --- | --- | --- | --- | --- |
@@ -71,7 +71,7 @@ Geração de arquivo: PDF reaproveita a mesma lib decidida em `F1-E04` (`pdf-lib
 
 Perfis exigidos: todas as rotas → `direção`/`coordenação`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/relatorios/page.tsx` — hub de relatórios com seleção de tipo + filtros (turma/série/período/situação) + botões de exportação (`F1-E07-U01`).
 - `app/(portal)/relatorios/censo-escolar/page.tsx` — tela dedicada de exportação do Censo, com lista de alunos pendentes destacada antes de exportar (`F1-E07-U02`).
@@ -80,19 +80,19 @@ Perfis exigidos: todas as rotas → `direção`/`coordenação`/`secretaria` (gu
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/reporting/application/useCases/generate-student-list-report.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/reporting/application/useCases/generate-attendance-report.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/reporting/application/useCases/generate-grades-report.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/reporting/application/useCases/generate-final-results-report.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/reporting/application/useCases/generate-delinquency-report.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/reporting/application/useCases/export-censo-escolar.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (6 controllers, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/report-file-presenter.ts` (helper compartilhado: monta `Content-Disposition`/`Content-Type` conforme `format`)
-- [ ] `conaa-web/app/(portal)/relatorios/page.tsx`
-- [ ] `conaa-web/app/(portal)/relatorios/censo-escolar/page.tsx`
-- [ ] `conaa-web/features/reporting/components/*.tsx`
-- [ ] `conaa-web/features/reporting/api/reports.ts`
-- [ ] `conaa-web/features/reporting/schemas/report-filters.ts`
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/generate-student-list-report.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/generate-attendance-report.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/generate-grades-report.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/generate-final-results-report.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/generate-delinquency-report.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/reporting/application/useCases/export-censo-escolar.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (6 controllers, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/report-file-presenter.ts` (helper compartilhado: monta `Content-Disposition`/`Content-Type` conforme `format`)
+- [ ] `diceduc-web/app/(portal)/relatorios/page.tsx`
+- [ ] `diceduc-web/app/(portal)/relatorios/censo-escolar/page.tsx`
+- [ ] `diceduc-web/features/reporting/components/*.tsx`
+- [ ] `diceduc-web/features/reporting/api/reports.ts`
+- [ ] `diceduc-web/features/reporting/schemas/report-filters.ts`
 
 ## Testes
 

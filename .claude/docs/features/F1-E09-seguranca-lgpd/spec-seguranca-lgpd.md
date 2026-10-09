@@ -48,7 +48,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `iam` — `conaa-api/src/domain/iam/enterprise/`
+### Contexto `iam` — `diceduc-api/src/domain/iam/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 | `ConsentRecord` | `Entity` | `consent-record.ts` | `studentId`, `guardianId`, `status: ConsentStatus`, `termVersion: string`, `occurredAt` |
 
 Value objects — `entities/valueObjects/`:
-- `role-name.ts` — `RoleName = 'SECRETARIA' | 'COORDENACAO' | 'PROFESSOR' | 'FINANCEIRO' | 'DIRECAO' | 'RESPONSAVEL' | 'ALUNO' | 'ADMIN'` (`ADMIN` é sempre group-wide — administrador do cliente dentro do próprio group, diferente do administrador da plataforma/`PlatformAdminGuard` de `F1-E0A`, que é da equipe CONAA).
+- `role-name.ts` — `RoleName = 'SECRETARIA' | 'COORDENACAO' | 'PROFESSOR' | 'FINANCEIRO' | 'DIRECAO' | 'RESPONSAVEL' | 'ALUNO' | 'ADMIN'` (`ADMIN` é sempre group-wide — administrador do cliente dentro do próprio group, diferente do administrador da plataforma/`PlatformAdminGuard` de `F1-E0A`, que é da equipe DICEDUC).
 - `permission.ts` — `Permission` (`module: string`, `actions: ('VIEW' | 'EDIT')[]`).
 - `audit-action.ts` — `AuditAction = 'CREATE' | 'UPDATE' | 'DELETE'`.
 - `consent-status.ts` — `ConsentStatus = 'GRANTED' | 'REVOKED'`.
@@ -70,7 +70,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### `conaa-api/src/domain/iam/application/useCases/`
+### `diceduc-api/src/domain/iam/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -90,17 +90,17 @@ Port de infraestrutura transversal (`core/audit/`): `AuditLogger` — `abstract 
 
 - Só um ator com papel `ADMIN` efetivo pode: atribuir `ADMIN`/`DIRECAO` (`AssignRoleToUserUseCase`), configurar permissões de qualquer papel (`ConfigureRolePermissionsUseCase`), redefinir senha (`ResetUserPasswordUseCase`, `F1-E10`) ou desativar (`SetUserStatusUseCase`, `F1-E10`) um usuário que também é `ADMIN`.
 - Ninguém altera os próprios papéis (`AssignRoleToUserUseCase`) nem o próprio status (`SetUserStatusUseCase`) — evita autopromoção e auto-bloqueio acidental.
-- `ProvisionGroupAdminUseCase` (`F1-E10`) é a única forma de criar o **primeiro** `ADMIN` de um group (atrás do `PlatformAdminGuard`, da equipe CONAA) — ele chama `ProvisionGroupRolesUseCase` e atribui `ADMIN` group-wide ao usuário criado. Para groups já existentes antes desta ficha, um script único de migração roda `ProvisionGroupRolesUseCase` para cada um.
+- `ProvisionGroupAdminUseCase` (`F1-E10`) é a única forma de criar o **primeiro** `ADMIN` de um group (atrás do `PlatformAdminGuard`, da equipe DICEDUC) — ele chama `ProvisionGroupRolesUseCase` e atribui `ADMIN` group-wide ao usuário criado. Para groups já existentes antes desta ficha, um script único de migração roda `ProvisionGroupRolesUseCase` para cada um.
 
 ## Infra transversal — guard de permissões
 
-- `conaa-api/src/infra/auth/permissions.guard.ts` — `PermissionsGuard`: lê `sub`/`groupId`/`schoolId` de `@CurrentUser()` (o JWT **não** carrega `role` — papéis são sempre lidos do banco, para revogação ser imediata, ver `arquitetura-ignite.md` §11), busca os `UserRole` **efetivos da sessão** (group-wide + os da `schoolId` corrente, ver "Multi-tenancy" acima) + `Role.permissions`, compara com o metadata setado pelo decorator. Reusa a mesma busca de `UserRole` que o `GroupScopeGuard` já faz para montar `allowedStudentIds` — não duplica a query.
-- `conaa-api/src/infra/auth/require-permission.decorator.ts` — `@RequirePermission(module: string, action: 'VIEW' | 'EDIT')`: `SetMetadata` lido pelo `PermissionsGuard`.
+- `diceduc-api/src/infra/auth/permissions.guard.ts` — `PermissionsGuard`: lê `sub`/`groupId`/`schoolId` de `@CurrentUser()` (o JWT **não** carrega `role` — papéis são sempre lidos do banco, para revogação ser imediata, ver `arquitetura-ignite.md` §11), busca os `UserRole` **efetivos da sessão** (group-wide + os da `schoolId` corrente, ver "Multi-tenancy" acima) + `Role.permissions`, compara com o metadata setado pelo decorator. Reusa a mesma busca de `UserRole` que o `GroupScopeGuard` já faz para montar `allowedStudentIds` — não duplica a query.
+- `diceduc-api/src/infra/auth/require-permission.decorator.ts` — `@RequirePermission(module: string, action: 'VIEW' | 'EDIT')`: `SetMetadata` lido pelo `PermissionsGuard`.
 - Registrar `PermissionsGuard` como segundo guard global (`APP_GUARD`), depois do `JwtAuthGuard`/`GroupScopeGuard` já existentes — rotas sem `@RequirePermission` continuam exigindo só autenticação (comportamento atual preservado).
 
 ## Persistência (`infra/database/prisma`)
 
-- `conaa-api/prisma/schema.prisma`: novos models `Role`, `UserRole`, `AuditLog`, `ConsentRecord`; enums `RoleName`, `AuditAction`, `ConsentStatus`. `Permission` como campo `Json` em `Role` (lista de `{ module, actions }`, não uma tabela própria — evita join extra para uma lista pequena e de baixa cardinalidade).
+- `diceduc-api/prisma/schema.prisma`: novos models `Role`, `UserRole`, `AuditLog`, `ConsentRecord`; enums `RoleName`, `AuditAction`, `ConsentStatus`. `Permission` como campo `Json` em `Role` (lista de `{ module, actions }`, não uma tabela própria — evita join extra para uma lista pequena e de baixa cardinalidade).
 - Repositórios: `prisma-roles-repository.ts`, `prisma-user-roles-repository.ts`, `prisma-audit-logs-repository.ts`, `prisma-consent-records-repository.ts` em `infra/database/prisma/repositories/`.
 - Mappers: `role-mapper.ts`, `user-role-mapper.ts`, `audit-log-mapper.ts`, `consent-record-mapper.ts`.
 
@@ -134,7 +134,7 @@ Adicionar `@RequirePermission(<module>, <action>)` em cada controller de `F1-E01
 | F1-E08 | `people`, `attendance` | os 2 controllers novos de `spec-portais-web.md` |
 | F1-E10 | `iam` | `create-user-account`, `list-users`, `reset-user-password`, `set-user-status` (as rotas de sessão/`me` ficam só com `JwtAuthGuard`, sem `@RequirePermission`) |
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
 - `app/(portal)/admin/perfis/page.tsx` — configuração de permissões por perfil (`F1-E09-U01`).
 - `app/(portal)/admin/auditoria/page.tsx` — trilha de auditoria filtrável (`F1-E09-U02`).
@@ -145,46 +145,46 @@ Adicionar `@RequirePermission(<module>, <action>)` em cada controller de `F1-E01
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/role.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/user-role.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/audit-log.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/consent-record.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/role-name.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/permission.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/audit-action.ts`
-- [ ] `conaa-api/src/domain/iam/enterprise/entities/valueObjects/consent-status.ts`
-- [ ] `conaa-api/src/domain/iam/application/useCases/configure-role-permissions.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/assign-role-to-user.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/provision-group-roles.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/get-audit-trail.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/register-consent.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/revoke-consent.ts` (+ errors/, + .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/get-consent-status.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/useCases/list-my-accessible-schools.ts` (+ .spec.ts)
-- [ ] `conaa-api/src/domain/iam/application/repositories/roles-repository.ts`
-- [ ] `conaa-api/src/domain/iam/application/repositories/user-roles-repository.ts` (editar se já existir stub — adiciona `canAccessSchool`/`findAccessibleSchoolIds`)
-- [ ] `conaa-api/src/domain/iam/application/repositories/audit-logs-repository.ts`
-- [ ] `conaa-api/src/domain/iam/application/repositories/consent-records-repository.ts`
-- [ ] `conaa-api/src/core/audit/audit-logger.ts`
-- [ ] `conaa-api/src/core/audit/sensitive-fields.ts`
-- [ ] `conaa-api/prisma/schema.prisma` (editar)
-- [ ] `conaa-api/src/infra/database/prisma/repositories/*.ts` (4 repositórios, ver seção Persistência)
-- [ ] `conaa-api/src/infra/database/prisma/mappers/*.ts` (4 mappers, ver seção Persistência)
-- [ ] `conaa-api/src/infra/auth/permissions.guard.ts`
-- [ ] `conaa-api/src/infra/auth/require-permission.decorator.ts`
-- [ ] `conaa-api/src/infra/auth/allow-all-students-provider.ts` → substituir binding pela implementação real (stub existente de `F1-E0A`)
-- [ ] `conaa-api/src/infra/http/controllers/*.ts` (7 controllers novos, ver seção HTTP)
-- [ ] `conaa-api/src/infra/http/presenters/*.ts` (4 presenters, ver seção HTTP)
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/role.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/user-role.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/audit-log.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/consent-record.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/role-name.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/permission.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/audit-action.ts`
+- [ ] `diceduc-api/src/domain/iam/enterprise/entities/valueObjects/consent-status.ts`
+- [ ] `diceduc-api/src/domain/iam/application/useCases/configure-role-permissions.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/assign-role-to-user.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/provision-group-roles.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/get-audit-trail.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/register-consent.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/revoke-consent.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/get-consent-status.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/useCases/list-my-accessible-schools.ts` (+ .spec.ts)
+- [ ] `diceduc-api/src/domain/iam/application/repositories/roles-repository.ts`
+- [ ] `diceduc-api/src/domain/iam/application/repositories/user-roles-repository.ts` (editar se já existir stub — adiciona `canAccessSchool`/`findAccessibleSchoolIds`)
+- [ ] `diceduc-api/src/domain/iam/application/repositories/audit-logs-repository.ts`
+- [ ] `diceduc-api/src/domain/iam/application/repositories/consent-records-repository.ts`
+- [ ] `diceduc-api/src/core/audit/audit-logger.ts`
+- [ ] `diceduc-api/src/core/audit/sensitive-fields.ts`
+- [ ] `diceduc-api/prisma/schema.prisma` (editar)
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/*.ts` (4 repositórios, ver seção Persistência)
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/*.ts` (4 mappers, ver seção Persistência)
+- [ ] `diceduc-api/src/infra/auth/permissions.guard.ts`
+- [ ] `diceduc-api/src/infra/auth/require-permission.decorator.ts`
+- [ ] `diceduc-api/src/infra/auth/allow-all-students-provider.ts` → substituir binding pela implementação real (stub existente de `F1-E0A`)
+- [ ] `diceduc-api/src/infra/http/controllers/*.ts` (7 controllers novos, ver seção HTTP)
+- [ ] `diceduc-api/src/infra/http/presenters/*.ts` (4 presenters, ver seção HTTP)
 - [ ] Retrofit: adicionar `@RequirePermission` em todos os controllers de `F1-E01` a `F1-E08` e `F1-E10` (ver tabela acima)
 - [ ] Retrofit: injetar `AuditLogger` em `UpdateStudentStatusUseCase`, `RecordAttendanceUseCase`, `JustifyAbsenceUseCase`, `LaunchGradesUseCase`, `PublishAssessmentUseCase`, `RegisterPaymentUseCase`, `AssignRoleToUserUseCase`, `ConfigureRolePermissionsUseCase`, `CreateUserAccountUseCase`, `ResetUserPasswordUseCase`, `SetUserStatusUseCase`
 - [ ] Retrofit: trocar o binding de `GroupScopeGuard` de `AllowAllStudentsProvider` (stub de `F1-E0A`) para a implementação real baseada em `UserRolesRepository` (ver seção "Multi-tenancy")
 - [ ] Script único de migração: rodar `ProvisionGroupRolesUseCase` para todo `Group` criado antes desta ficha
-- [ ] `conaa-web/app/(portal)/admin/perfis/page.tsx`
-- [ ] `conaa-web/app/(portal)/admin/auditoria/page.tsx`
-- [ ] `conaa-web/app/(public)/consentimento/page.tsx`
-- [ ] `conaa-web/features/iam/components/*.tsx`
-- [ ] `conaa-web/features/iam/api/iam.ts`
-- [ ] `conaa-web/features/iam/schemas/iam.ts`
+- [ ] `diceduc-web/app/(portal)/admin/perfis/page.tsx`
+- [ ] `diceduc-web/app/(portal)/admin/auditoria/page.tsx`
+- [ ] `diceduc-web/app/(public)/consentimento/page.tsx`
+- [ ] `diceduc-web/features/iam/components/*.tsx`
+- [ ] `diceduc-web/features/iam/api/iam.ts`
+- [ ] `diceduc-web/features/iam/schemas/iam.ts`
 
 ## Testes
 

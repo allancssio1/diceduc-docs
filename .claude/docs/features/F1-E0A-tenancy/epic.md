@@ -10,11 +10,11 @@
 | Estimativa | M |
 | Bounded context(s) | `tenancy` |
 | Depende de | F1-E00 (bootstrap) |
-| Rastreabilidade | Não existe no BACKLOG original — decisão de arquitetura tomada durante a especificação da Fase 1: o CONAA é multi-tenant desde o primeiro momento, não um retrofit de fase posterior. |
+| Rastreabilidade | Não existe no BACKLOG original — decisão de arquitetura tomada durante a especificação da Fase 1: o DICEDUC é multi-tenant desde o primeiro momento, não um retrofit de fase posterior. |
 
 ## Objetivo
 
-Estabelecer a fundação multi-tenant do CONAA: a entidade `Group` (o tenant — uma secretaria,
+Estabelecer a fundação multi-tenant do DICEDUC: a entidade `Group` (o tenant — uma secretaria,
 município, rede ou escola isolada) e a entidade `School` (escola, sempre vinculada a um `Group`),
 mais o mecanismo de isolamento/escopo (`GroupContext`, guard, Prisma extension) que **todos** os
 épicos de domínio (F1-E01 em diante) vão usar. Esta ficha roda **antes** de `F1-E01` — nenhum

@@ -44,7 +44,7 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 `<Para cada entidade/aggregate/VO novo ou alterado:>`
 
-### `<NomeDaEntidade>` — `conaa-api/src/domain/<contexto>/enterprise/entities/<nome-kebab>.ts`
+### `<NomeDaEntidade>` — `diceduc-api/src/domain/<contexto>/enterprise/entities/<nome-kebab>.ts`
 
 - Tipo: `<Entity | AggregateRoot>`
 - Props principais: `<lista de campos e tipos>`
@@ -55,7 +55,7 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 `<Para cada use case:>`
 
-### `<NomeUseCase>` — `conaa-api/src/domain/<contexto>/application/useCases/<nome-kebab>.ts`
+### `<NomeUseCase>` — `diceduc-api/src/domain/<contexto>/application/useCases/<nome-kebab>.ts`
 
 - Entrada: `<campos>`
 - Saída (`Either`): `Either<<ErrosPossíveis>, { <sucesso> }>`
@@ -65,26 +65,26 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 ## Persistência (`infra/database/prisma`)
 
-- Alterações em `conaa-api/prisma/schema.prisma`: `<novos models/campos/relations>`
-- Repositórios: `conaa-api/src/infra/database/prisma/repositories/<nome-kebab>.ts` (implementa o port de `application/repositories/`)
-- Mappers: `conaa-api/src/infra/database/prisma/mappers/<nome-kebab>.ts`
+- Alterações em `diceduc-api/prisma/schema.prisma`: `<novos models/campos/relations>`
+- Repositórios: `diceduc-api/src/infra/database/prisma/repositories/<nome-kebab>.ts` (implementa o port de `application/repositories/`)
+- Mappers: `diceduc-api/src/infra/database/prisma/mappers/<nome-kebab>.ts`
 
 ## HTTP (`infra/http`)
 
 `<Para cada endpoint:>`
 
-### `<MÉTODO> <rota>` — `conaa-api/src/infra/http/controllers/<nome-kebab>.controller.ts`
+### `<MÉTODO> <rota>` — `diceduc-api/src/infra/http/controllers/<nome-kebab>.controller.ts`
 
 - Schema Zod de entrada: `<campos e regras>`
-- Presenter de saída: `conaa-api/src/infra/http/presenters/<nome-kebab>.presenter.ts`
+- Presenter de saída: `diceduc-api/src/infra/http/presenters/<nome-kebab>.presenter.ts`
 - Autenticação/perfis exigidos: `<ex.: secretaria, coordenação>`
 
-## Frontend (`conaa-web`)
+## Frontend (`diceduc-web`)
 
-- Rota(s): `conaa-web/app/(portal)/<caminho>/page.tsx`
-- Componentes: `conaa-web/features/<contexto>/components/<Nome>.tsx`
-- Chamadas à API: `conaa-web/features/<contexto>/api/<nome>.ts`
-- Schema de formulário: `conaa-web/features/<contexto>/schemas/<nome>.ts`
+- Rota(s): `diceduc-web/app/(portal)/<caminho>/page.tsx`
+- Componentes: `diceduc-web/features/<contexto>/components/<Nome>.tsx`
+- Chamadas à API: `diceduc-web/features/<contexto>/api/<nome>.ts`
+- Schema de formulário: `diceduc-web/features/<contexto>/schemas/<nome>.ts`
 - Estados de UI relevantes: `<loading, vazio, erro de negócio específico, etc.>`
 
 ## Eventos/subscribers (se houver)
@@ -93,21 +93,21 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `conaa-api/src/domain/<contexto>/enterprise/entities/...`
-- [ ] `conaa-api/src/domain/<contexto>/application/useCases/...`
-- [ ] `conaa-api/src/domain/<contexto>/application/repositories/...`
-- [ ] `conaa-api/src/infra/database/prisma/repositories/...`
-- [ ] `conaa-api/src/infra/database/prisma/mappers/...`
-- [ ] `conaa-api/prisma/schema.prisma`
-- [ ] `conaa-api/src/infra/http/controllers/...`
-- [ ] `conaa-api/src/infra/http/presenters/...`
-- [ ] `conaa-web/app/(portal)/...`
-- [ ] `conaa-web/features/<contexto>/...`
+- [ ] `diceduc-api/src/domain/<contexto>/enterprise/entities/...`
+- [ ] `diceduc-api/src/domain/<contexto>/application/useCases/...`
+- [ ] `diceduc-api/src/domain/<contexto>/application/repositories/...`
+- [ ] `diceduc-api/src/infra/database/prisma/repositories/...`
+- [ ] `diceduc-api/src/infra/database/prisma/mappers/...`
+- [ ] `diceduc-api/prisma/schema.prisma`
+- [ ] `diceduc-api/src/infra/http/controllers/...`
+- [ ] `diceduc-api/src/infra/http/presenters/...`
+- [ ] `diceduc-web/app/(portal)/...`
+- [ ] `diceduc-web/features/<contexto>/...`
 
 ## Testes
 
-- Repositório in-memory: `conaa-api/test/repositories/in-memory-<nome>.ts`
-- Factory: `conaa-api/test/factories/make-<nome>.ts`
+- Repositório in-memory: `diceduc-api/test/repositories/in-memory-<nome>.ts`
+- Factory: `diceduc-api/test/factories/make-<nome>.ts`
 - Unit spec de use case: `<use-case>.spec.ts` (ao lado do use case)
 - E2E do controller: `<controller>.e2e-spec.ts` (ao lado do controller)
 - Frontend: teste de componente/hook relevante (se a tela tiver lógica não trivial)
@@ -116,5 +116,5 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 - [ ] Todos os critérios de aceite das histórias no BACKLOG estão satisfeitos.
 - [ ] Testes unitários e e2e listados acima passando.
-- [ ] `pnpm build` (ou equivalente) sem erros em `conaa-api` e `conaa-web`.
+- [ ] `pnpm build` (ou equivalente) sem erros em `diceduc-api` e `diceduc-web`.
 - [ ] Checklist de "Arquivos a criar/editar" concluído.
