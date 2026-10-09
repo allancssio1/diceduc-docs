@@ -16,6 +16,8 @@ Para **implementar uma tarefa**, leia **apenas**:
 
 Se a pasta do épico não existir ainda, ou existir só como ⚪ (sem spec), **pare e peça para especificá-la** em vez de improvisar a partir do backlog — assim ela também fica registrada para a próxima vez.
 
+**Documentação viva (as-built) fica nos repositórios, não aqui.** Este hub guarda o que **será** implementado (fichas, specs, percurso). O que **já foi** implementado fica em cada repo: `AGENTS.md` → `.claude/arquitetura.md` (core da arquitetura) e `.claude/dominios/<contexto>.md` (um por domínio: modelo, regras de negócio, decisões com o porquê). Ao concluir uma ficha que altere arquitetura, regras ou decisões de um domínio, atualize esses arquivos no repo tocado — e só o que existe no código.
+
 ## O que é este projeto
 
 DICEDUC é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o quê" e o "por quê") está em `.claude/ROADMAP.md`/`.claude/BACKLOG.md`; este arquivo e as fichas cobrem o "como implementar".
@@ -49,6 +51,11 @@ Caminhos que começam com `diceduc-api/` ou `diceduc-web/` nas fichas são relat
 Repositório `diceduc-api`:
 
 ```
+AGENTS.md                  entrada da documentação viva (aponta para .claude/arquitetura.md)
+CLAUDE.md                  @AGENTS.md
+.claude/
+  arquitetura.md           core da arquitetura como implementada
+  dominios/<contexto>.md   1 por domínio já implementado
 src/
   core/                    building blocks compartilhados (Entity, Either, DomainEvents, erros genéricos)
   domain/
@@ -70,6 +77,11 @@ prisma/
 Repositório `diceduc-web`:
 
 ```
+AGENTS.md                  entrada da documentação viva (aponta para .claude/arquitetura.md)
+CLAUDE.md                  @AGENTS.md
+.claude/
+  arquitetura.md           core da arquitetura como implementada
+  dominios/<contexto>.md   1 por domínio já implementado
 ...                        ver .claude/arquitetura-frontend.md
 ```
 

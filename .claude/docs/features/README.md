@@ -61,4 +61,5 @@ Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejam
 1. **Planejar um épico ⚪:** o `epic.md` já existe para todos os épicos — é o ponto de partida.
 2. **Especificar (⚪ → 🔵):** dentro da pasta do épico, copiar [`_TEMPLATE-spec.md`](_TEMPLATE-spec.md) para `spec-<nome>.md` (uma spec por fatia implementável — um épico grande pode gerar mais de uma) e preencher usando o `epic.md` e o `BACKLOG.md` como fonte. Atualizar o status nesta tabela para 🔵.
 3. **Implementar (🔵 → 🟢):** seguir a(s) spec(s) conforme o protocolo do [`CLAUDE.md`](../../../CLAUDE.md). Atualizar o status nesta tabela para 🟢 quando o código estiver em produção/mergeado.
-4. **Novo épico** (fora do BACKLOG atual): copiar [`_TEMPLATE-epic.md`](_TEMPLATE-epic.md) para uma nova pasta e seguir o mesmo ciclo.
+4. **Atualizar a documentação as-built do repo tocado:** se a ficha mudou arquitetura, regras ou decisões de um domínio, atualizar `.claude/arquitetura.md` e/ou `.claude/dominios/<contexto>.md` no repo (`diceduc-api`/`diceduc-web`), descrevendo só o que foi implementado. Esse passo faz parte da conclusão da ficha, antes de marcar 🟢.
+5. **Novo épico** (fora do BACKLOG atual): copiar [`_TEMPLATE-epic.md`](_TEMPLATE-epic.md) para uma nova pasta e seguir o mesmo ciclo.

@@ -25,6 +25,12 @@ Este repositório (`diceduc-docs`) não recebe código nesta ficha — ele conti
 - [ ] Criar os 2 repositórios git `diceduc-api` e `diceduc-web` **como pastas irmãs de `diceduc-docs`, dentro de `diceduc-controle-escolar/`** (`git init` em cada uma), cada um independente (histórico, versionamento e deploy próprios).
 - [ ] Em cada repositório: `package.json` próprio com scripts (`dev`, `build`, `test`, `lint`), lint/format próprio (ESLint + Prettier) e `.gitignore` cobrindo `node_modules`, `dist`/`.next`, `.env`.
 - [ ] Não há ferramenta de workspace/monorepo (pnpm workspaces, turborepo etc.) — cada repositório é standalone e resolve suas próprias dependências.
+- [ ] Padrão de documentação as-built em cada repositório (`diceduc-api` e `diceduc-web`):
+  - `AGENTS.md` — ponto de entrada: aponta para `.claude/arquitetura.md` e define a regra de manutenção (atualizar ao implementar algo que toque arquitetura ou um domínio).
+  - `CLAUDE.md` — uma única linha: `@AGENTS.md` (o Claude Code lê `CLAUDE.md`, não `AGENTS.md`).
+  - `.claude/arquitetura.md` — core da arquitetura **como está implementada** após este bootstrap: camadas, convenções efetivas, comandos reais e seção "Domínios" (índice contexto → arquivo).
+  - `.claude/dominios/.gitkeep` — pasta vazia; cada ficha de domínio cria o seu `dominios/<contexto>.md` ao ser implementada.
+  - Documentar só o que existe no código. O que será feito fica em `diceduc-docs` (fichas e specs), não nos repositórios.
 
 ### `diceduc-api` (NestJS + Prisma)
 
@@ -98,6 +104,10 @@ terreno: o payload do JWT (`jwt.strategy.ts`, acima) já nasce com o campo `grou
 
 ```
 diceduc-api/package.json
+diceduc-api/AGENTS.md
+diceduc-api/CLAUDE.md
+diceduc-api/.claude/arquitetura.md
+diceduc-api/.claude/dominios/.gitkeep
 diceduc-api/src/core/**
 diceduc-api/src/infra/env/**
 diceduc-api/src/infra/database/prisma/prisma.service.ts
@@ -117,6 +127,10 @@ diceduc-api/.github/workflows/ci.yml
 diceduc-api/README.md
 
 diceduc-web/package.json
+diceduc-web/AGENTS.md
+diceduc-web/CLAUDE.md
+diceduc-web/.claude/arquitetura.md
+diceduc-web/.claude/dominios/.gitkeep
 diceduc-web/components.json
 diceduc-web/app/globals.css
 diceduc-web/app/layout.tsx
@@ -147,4 +161,5 @@ diceduc-web/README.md
 - [ ] `prisma migrate dev` aplica a migração inicial (vazia) sem erro.
 - [ ] Suítes de teste (unit e e2e) do `diceduc-api` rodam e passam (mesmo que triviais).
 - [ ] `CLAUDE.md` (neste hub) atualizado com os comandos reais de cada repositório.
+- [ ] Cada repositório tem `AGENTS.md` → `.claude/arquitetura.md` descrevendo o que foi implementado, `CLAUDE.md` com `@AGENTS.md` e `.claude/dominios/` vazia.
 - [ ] Nenhum código de domínio de negócio incluído nesta ficha — isso é responsabilidade de `F1-E01` em diante.
