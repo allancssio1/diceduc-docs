@@ -133,7 +133,46 @@ Novos contextos são adicionados conforme novas fichas forem criadas nas fases s
 
 ## Comandos
 
-> Ficam vazios até `.claude/docs/features/F1-E00-bootstrap/epic.md` ser executado — depois desta ficha, atualize esta seção com os comandos reais (dev, test unit, test e2e, migrate).
+Cada repositório é standalone (pnpm 12, Node 24+): rode os comandos dentro da pasta dele. Os scripts completos estão no `README.md` de cada repo.
+
+`diceduc-api` (porta 3333; precisa do `.env`, ver o README):
+
+| Para | Comando |
+| --- | --- |
+| Subir o Postgres local | `docker compose up -d` (`pnpm db:up`) |
+| Migrar (dev / deploy) | `pnpm prisma migrate dev` (`pnpm db:migrate`) / `pnpm db:deploy` |
+| Rodar em dev (watch) | `pnpm dev` |
+| Build | `pnpm build` |
+| Testes unitários | `pnpm test` |
+| Testes e2e (exige o Postgres no ar) | `pnpm test:e2e` |
+| Lint / tipos / formatação / audit | `pnpm lint` / `pnpm typecheck` / `pnpm format:check` / `pnpm audit` |
+
+`diceduc-web` (porta 3000; `DICEDUC_API_URL` em `.env.local` aponta para a API):
+
+| Para | Comando |
+| --- | --- |
+| Rodar em dev | `pnpm dev` |
+| Build | `pnpm build` |
+| Testes unitários | `pnpm test` |
+| Lint / tipos / formatação / audit | `pnpm lint` / `pnpm typecheck` / `pnpm format:check` / `pnpm audit` |
+| Adicionar componente shadcn | `pnpm dlx shadcn@latest add <componente>` |
+
+Antes de commitar em qualquer repo, rode `lint`, `typecheck` e `test` (o CI roda os mesmos; em PR roda também e2e/build e `audit`).
+
+## Fluxo git (obrigatório em `diceduc-api` e `diceduc-web`)
+
+Antes de **cada** implementação nova (uma ficha, uma funcionalidade ou uma correção), no repo de código tocado:
+
+1. Atualizar a `main`: `git checkout main && git pull origin main`. Nunca criar a branch a partir de uma `main` local desatualizada nem de outra branch de feature.
+2. Criar a branch a partir dela: `feat/<nome-da-implementação>` (ex.: `feat/f1-e0a-tenancy`) ou, para correção de bug, `fix/<nome>`. Nome em kebab-case.
+3. Implementar.
+4. Commitar com a mensagem `feat: <descrição do que foi feito>` (ou `fix: <descrição>` para correção de bug).
+5. `git push -u origin <branch>`.
+6. **Voltar para a `main`** (`git checkout main`) logo depois do push. Não ficar parado na branch de feature: a próxima implementação começa do passo 1.
+
+**Não** abrir pull request, não fazer merge e não fazer push direto na `main`: o PR é aberto no GitHub por quem mantém o repositório. Uma implementação que toca os dois repos gera uma branch em cada um, com o mesmo nome.
+
+Este fluxo vale para os repos de código. Mudanças só de documentação em `diceduc-docs` seguem o mesmo padrão de branch se o usuário pedir; sem pedido, não commite nem faça push lá.
 
 ## Índice de referência (produto, não implementação)
 
