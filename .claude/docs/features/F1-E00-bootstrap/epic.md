@@ -80,7 +80,7 @@ Estrutura conforme [arquitetura-frontend.md](../../../arquitetura-frontend.md) �
 - [ ] `shared/ui/ThemeToggle.tsx` — alterna claro/escuro (ver [design-system.md §4](../../../design-system.md#4-modo-escuro)).
 - [ ] `shared/api/client.ts` — client HTTP tipado apontando para a API (usa variável de ambiente para a base URL do `diceduc-api`, já que são repositórios/deploys separados), marcado `server-only` (ver `arquitetura-frontend.md` §4).
 - [ ] `proxy.ts` — placeholder de proteção de rota (sem lógica de sessão/perfil ainda, só estrutura — a lógica real de sessão/renovação entra em `F1-E10`).
-- [ ] `app/[grupo]/[escola]/` — estrutura de pastas do tenant na URL (sem lógica de branding ainda, isso entra em `F1-E0A`); página pública mínima (`app/[grupo]/[escola]/(public)/login/page.tsx`, sem shell) e página protegida mínima (`app/[grupo]/[escola]/(portal)/page.tsx`, com o shell mínimo — sidebar + header com `ThemeToggle`, ver [design-system.md §6](../../../design-system.md#6-shell-do-portal), usando o componente `sidebar` do shadcn) para provar que o roteamento, o proxy, os tokens, a fonte e o tema funcionam juntos. `app/page.tsx` (raiz) com um texto simples de placeholder.
+- [ ] `app/[group]/[school]/` — estrutura de pastas do tenant na URL (sem lógica de branding ainda, isso entra em `F1-E0A`); página pública mínima (`app/[group]/[school]/(public)/login/page.tsx`, sem shell) e página protegida mínima (`app/[group]/[school]/(portal)/page.tsx`, com o shell mínimo — sidebar + header com `ThemeToggle`, ver [design-system.md §6](../../../design-system.md#6-shell-do-portal), usando o componente `sidebar` do shadcn) para provar que o roteamento, o proxy, os tokens, a fonte e o tema funcionam juntos. `app/page.tsx` (raiz) com um texto simples de placeholder.
 - [ ] `next.config.ts` — headers de segurança básicos (ver [arquitetura-ignite.md §12](../../../arquitetura-ignite.md#12-segurança-de-aplicação-baseline) e `arquitetura-frontend.md` §6; a API exata de configuração deve ser validada contra a doc do Next 16.3 na hora de implementar).
 - [ ] `package.json` — script `audit`: `pnpm audit --prod --audit-level=high`.
 - [ ] `.github/workflows/ci.yml` — `push`: lint, testes unitários. `pull_request` para `main`: os mesmos passos + `next build` + `pnpm audit`. (Playwright entra no CI deste workflow a partir de `F1-E08`, quando existem os primeiros testes e2e de UI.)
@@ -135,8 +135,8 @@ diceduc-web/components.json
 diceduc-web/app/globals.css
 diceduc-web/app/layout.tsx
 diceduc-web/app/page.tsx
-diceduc-web/app/[grupo]/[escola]/(public)/login/page.tsx
-diceduc-web/app/[grupo]/[escola]/(portal)/page.tsx
+diceduc-web/app/[group]/[school]/(public)/login/page.tsx
+diceduc-web/app/[group]/[school]/(portal)/page.tsx
 diceduc-web/shared/ui/ThemeToggle.tsx
 diceduc-web/shared/api/client.ts
 diceduc-web/proxy.ts

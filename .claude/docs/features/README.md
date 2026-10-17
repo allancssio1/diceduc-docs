@@ -20,13 +20,13 @@ Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejam
 
 | ID | Título | Bounded context | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- | --- |
-| [F1-E01](F1-E01-cadastros-sis/epic.md) | Cadastros / SIS básico | `people`, `academic` | backend | 🔵 especificado | F1-E00, F1-E0A |
-| [F1-E10](F1-E10-identidade-acesso/epic.md) | Identidade e acesso (login, sessão, senha) | `iam` | backend, frontend | 🔵 especificado | F1-E0A, F1-E01 |
-| [F1-E02](F1-E02-matricula-rematricula/epic.md) | Matrícula, rematrícula e turmas | `academic` | backend | 🔵 especificado | F1-E01 |
-| [F1-E03](F1-E03-frequencia/epic.md) | Gestão de frequência | `attendance` | backend | 🔵 especificado | F1-E02, F1-E05 |
+| [F1-E01](F1-E01-cadastros-sis/epic.md) | Cadastros / SIS básico | `people`, `academic` | backend | 🟢 implementado | F1-E00, F1-E0A |
+| [F1-E10](F1-E10-identidade-acesso/epic.md) | Identidade e acesso (login, sessão, senha) | `iam` | backend, frontend | 🟢 implementado | F1-E0A, F1-E01 |
+| [F1-E02](F1-E02-matricula-rematricula/epic.md) | Matrícula, rematrícula e turmas | `academic` | backend, frontend | 🟢 implementado | F1-E01 |
+| [F1-E03](F1-E03-frequencia/epic.md) | Gestão de frequência | `attendance` | backend, frontend | 🟢 implementado | F1-E02, F1-E05 |
 | [F1-E04](F1-E04-avaliacoes-notas/epic.md) | Avaliações, notas e boletins | `assessment` | backend | 🔵 especificado | F1-E02, F1-E05 |
-| [F1-E05](F1-E05-horarios/epic.md) | Horários e grade de aulas | `academic` | backend | 🔵 especificado | F1-E02 |
-| [F1-E06](F1-E06-financeiro/epic.md) | Financeiro essencial | `finance` | backend | 🔵 especificado | F1-E01, F1-E02 |
+| [F1-E05](F1-E05-horarios/epic.md) | Horários e grade de aulas | `academic` | backend, frontend | 🟢 implementado | F1-E02 |
+| [F1-E06](F1-E06-financeiro/epic.md) | Financeiro essencial | `finance` | backend, frontend | 🟢 implementado | F1-E01, F1-E02 |
 | [F1-E07](F1-E07-relatorios/epic.md) | Relatórios administrativos e oficiais | `reporting` | backend | 🔵 especificado | F1-E01…F1-E06 |
 | [F1-E08](F1-E08-portais-web/epic.md) | Portais web (pais, alunos, professores) | vários | frontend | 🔵 especificado | F1-E01…F1-E06 |
 | [F1-E09](F1-E09-seguranca-lgpd/epic.md) | Segurança, perfis de acesso e LGPD | `iam` | backend | 🔵 especificado (2 specs: `spec-seguranca-lgpd.md`, `spec-direitos-titular.md`) | F1-E01, F1-E10 (transversal) |

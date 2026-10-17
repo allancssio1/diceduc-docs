@@ -28,7 +28,7 @@ Publicar conteúdo e atividades por turma, e integrar turmas do sistema com o Go
 
 ## Dependências e integrações
 
-Depende de F1-E02 (`Turma`) e F1-E05 (contexto de aula). A integração com Google Classroom exige OAuth e API externa do Google.
+Depende de F1-E02 (`ClassGroup`) e F1-E05 (contexto de aula). A integração com Google Classroom exige OAuth e API externa do Google.
 
 ## Decisões em aberto / riscos
 

@@ -136,13 +136,13 @@ Perfis exigidos: `POST /users`, `GET /users`, `POST /users/:userId/password-rese
 
 ## Frontend (`diceduc-web`)
 
-Tudo sob `app/[grupo]/[escola]/`:
+Tudo sob `app/[group]/[school]/`:
 
-- `app/[grupo]/[escola]/(public)/login/page.tsx` (editar) — mostra nome/logo/cor do branding (`F1-E0A`); Server Action envia `groupSlug`/`schoolSlug` + credenciais a `POST /sessions` e grava `diceduc_access`/`diceduc_refresh` (`Path=/{grupo}`); texto "Esqueceu a senha? Procure a secretaria" — vira link para `/esqueci-senha` quando `PASSWORD_RESET_ENABLED=true` (env do próprio `diceduc-web`).
-- `app/[grupo]/[escola]/(public)/primeiro-acesso/page.tsx` — formulário de `CompleteFirstAccessUseCase`.
-- `app/[grupo]/[escola]/(public)/esqueci-senha/page.tsx` e `.../redefinir-senha/page.tsx` — chamam `notFound()` logo no topo quando `PASSWORD_RESET_ENABLED=false`.
-- `app/[grupo]/[escola]/(portal)/minha-conta/page.tsx` — trocar senha (`ChangePasswordUseCase`), botão "sair de todos os dispositivos" (`RevokeMySessionsUseCase`), lista das outras escolas do group a que o usuário tem acesso (links, com aviso de que abrir exige novo login).
-- `app/[grupo]/[escola]/(portal)/admin/usuarios/page.tsx` — lista de usuários, criar acesso (mostra a senha temporária **uma vez**, com botão de copiar), redefinir senha, ativar/desativar.
+- `app/[group]/[school]/(public)/login/page.tsx` (editar) — mostra nome/logo/cor do branding (`F1-E0A`); Server Action envia `groupSlug`/`schoolSlug` + credenciais a `POST /sessions` e grava `diceduc_access`/`diceduc_refresh` (`Path=/{groupSlug}`); texto "Esqueceu a senha? Procure a secretaria" — vira link para `/forgot-password` quando `PASSWORD_RESET_ENABLED=true` (env do próprio `diceduc-web`).
+- `app/[group]/[school]/(public)/first-access/page.tsx` — formulário de `CompleteFirstAccessUseCase`.
+- `app/[group]/[school]/(public)/forgot-password/page.tsx` e `.../reset-password/page.tsx` — chamam `notFound()` logo no topo quando `PASSWORD_RESET_ENABLED=false`.
+- `app/[group]/[school]/(portal)/my-account/page.tsx` — trocar senha (`ChangePasswordUseCase`), botão "sair de todos os dispositivos" (`RevokeMySessionsUseCase`), lista das outras escolas do group a que o usuário tem acesso (links, com aviso de que abrir exige novo login).
+- `app/[group]/[school]/(portal)/admin/users/page.tsx` — lista de usuários, criar acesso (mostra a senha temporária **uma vez**, com botão de copiar), redefinir senha, ativar/desativar.
 - `shared/auth/session.ts` (`server-only`) — `getSession()` (`cache()` do React, chama `GET /me`), helpers de cookie.
 - `shared/api/client.ts` (editar) — injeta `Bearer` do `diceduc_access`; em `401`, propaga para o `proxy.ts` tratar (apaga cookies, redireciona).
 - `proxy.ts` (editar) — renova o access quando perto de expirar (`POST /sessions/refresh`), e desloga se o `schoolId` da sessão não bate com a escola da URL (ver `arquitetura-frontend.md` §6).
@@ -185,12 +185,12 @@ Tudo sob `app/[grupo]/[escola]/`:
 - [ ] `diceduc-api/src/infra/database/prisma/mappers/user-mapper.ts`, `refresh-token-mapper.ts`, `password-reset-token-mapper.ts`
 - [ ] `diceduc-api/src/infra/http/controllers/*.ts` (13 controllers, ver seção HTTP)
 - [ ] `diceduc-api/src/infra/http/presenters/user-presenter.ts`, `me-presenter.ts`
-- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/login/page.tsx` (editar)
-- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/primeiro-acesso/page.tsx`
-- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/esqueci-senha/page.tsx`
-- [ ] `diceduc-web/app/[grupo]/[escola]/(public)/redefinir-senha/page.tsx`
-- [ ] `diceduc-web/app/[grupo]/[escola]/(portal)/minha-conta/page.tsx`
-- [ ] `diceduc-web/app/[grupo]/[escola]/(portal)/admin/usuarios/page.tsx`
+- [ ] `diceduc-web/app/[group]/[school]/(public)/login/page.tsx` (editar)
+- [ ] `diceduc-web/app/[group]/[school]/(public)/first-access/page.tsx`
+- [ ] `diceduc-web/app/[group]/[school]/(public)/forgot-password/page.tsx`
+- [ ] `diceduc-web/app/[group]/[school]/(public)/reset-password/page.tsx`
+- [ ] `diceduc-web/app/[group]/[school]/(portal)/my-account/page.tsx`
+- [ ] `diceduc-web/app/[group]/[school]/(portal)/admin/users/page.tsx`
 - [ ] `diceduc-web/shared/auth/session.ts`
 - [ ] `diceduc-web/shared/api/client.ts` (editar)
 - [ ] `diceduc-web/proxy.ts` (editar)

@@ -85,7 +85,7 @@ CLAUDE.md                  @AGENTS.md
 ...                        ver .claude/arquitetura-frontend.md
 ```
 
-Nas fichas de feature, caminhos de rota escritos como `app/(portal)/...`/`app/(public)/...` são relativos a `app/[grupo]/[escola]/` — toda navegação do `diceduc-web` fica sob o tenant identificado na URL (ver [.claude/arquitetura-frontend.md §2](.claude/arquitetura-frontend.md#2-estrutura-de-pastas)).
+Nas fichas de feature, caminhos de rota escritos como `app/(portal)/...`/`app/(public)/...` são relativos a `app/[group]/[school]/` — toda navegação do `diceduc-web` fica sob o tenant identificado na URL (ver [.claude/arquitetura-frontend.md §2](.claude/arquitetura-frontend.md#2-estrutura-de-pastas)).
 
 Este repositório (`diceduc-docs`):
 

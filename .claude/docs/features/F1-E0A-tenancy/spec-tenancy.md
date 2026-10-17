@@ -31,7 +31,7 @@ domínio subsequente (F1-E01 em diante) vai consumir. **Leia primeiro
 
 Value objects — `entities/valueObjects/`:
 - `slug.ts` — `Slug` (kebab-case, `^[a-z0-9]+(-[a-z0-9]+)*$`, validado na criação — usado tanto por `Group` quanto por `School`).
-- `group-type.ts` — `GroupType = 'SECRETARIA' | 'MUNICIPIO' | 'REDE' | 'ESCOLA'` (rótulo informativo, não muda nenhum comportamento de isolamento).
+- `group-type.ts` — `GroupType = 'EDUCATION_DEPARTMENT' | 'MUNICIPALITY' | 'NETWORK' | 'SCHOOL'` (rótulo informativo, não muda nenhum comportamento de isolamento).
 - `group-status.ts` — `GroupStatus = 'ACTIVE' | 'SUSPENDED'`.
 - `school-status.ts` — `SchoolStatus = 'ACTIVE' | 'INACTIVE'`.
 
@@ -157,7 +157,7 @@ Exemplo de uso via `curl` documentado no README do `diceduc-api` (não há tela 
 Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe DICEDUC direto na API
 (ver seção HTTP). O `diceduc-web` só consome o que já existe:
 
-- `app/[grupo]/[escola]/(portal)/admin/escolas/page.tsx` — lista de escolas do group logado (`GET /schools`), tela administrativa (não há mais seletor de escola — ver `arquitetura-frontend.md` §10, uma sessão é sempre de uma escola).
+- `app/[group]/[school]/(portal)/admin/schools/page.tsx` — lista de escolas do group logado (`GET /schools`), tela administrativa (não há mais seletor de escola — ver `arquitetura-frontend.md` §10, uma sessão é sempre de uma escola).
 - `features/tenancy/api/tenancy.ts` (`listGroupSchools`, `getTenantBranding`), `features/tenancy/schemas/tenancy.ts`.
 - `shared/auth/useSession.ts`: passa a expor `groupId` e `schoolId` (ver `arquitetura-frontend.md §10`) — não mais `allowedSchoolIds`.
 
@@ -190,7 +190,7 @@ Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe
 - [ ] `diceduc-api/src/infra/http/controllers/list-group-schools.controller.ts`
 - [ ] `diceduc-api/src/infra/http/controllers/get-tenant-branding.controller.ts`
 - [ ] `diceduc-api/src/infra/http/presenters/group-presenter.ts`, `school-presenter.ts`
-- [ ] `diceduc-web/app/[grupo]/[escola]/(portal)/admin/escolas/page.tsx`
+- [ ] `diceduc-web/app/[group]/[school]/(portal)/admin/schools/page.tsx`
 - [ ] `diceduc-web/features/tenancy/api/tenancy.ts`
 - [ ] `diceduc-web/features/tenancy/schemas/tenancy.ts`
 - [ ] `diceduc-web/shared/auth/useSession.ts` (editar)

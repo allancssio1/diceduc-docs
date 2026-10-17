@@ -32,7 +32,7 @@ O épico deixava em aberto se a fórmula de média seria totalmente livre ou fix
 Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [`F1-E0A`](../F1-E0A-tenancy/spec-tenancy.md). Específico deste épico:
 
 - `GradeFormula` é configurada **por escola** (`schoolId`), não só por segmento — duas escolas do mesmo group podem ter políticas de recuperação diferentes mesmo no mesmo segmento.
-- `Assessment`, `Grade` carregam `groupId`/`schoolId` (herdado da `turmaId`).
+- `Assessment`, `Grade` carregam `groupId`/`schoolId` (herdado da `classGroupId`).
 - `GenerateTranscriptUseCase` (histórico consolidado) permanece restrito ao `groupId` do aluno — um histórico nunca atravessa groups, mesmo que o aluno tenha estudado em escolas diferentes do mesmo group ao longo dos anos (isso é esperado e suportado, já que todas pertencem ao mesmo `groupId`).
 
 ## Modelo de domínio (`enterprise`)
@@ -42,7 +42,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
 | `GradeFormula` | `Entity` | `grade-formula.ts` | `segment: Segment` (reusa VO de `academic`, `F1-E01`), `scaleType: GradeScaleType`, `weights: { type: string; weight: number }[]`, `recoveryMinGrade: number` |
-| `Assessment` | `AggregateRoot` | `assessment.ts` | `turmaId`, `disciplinaId`, `name`, `type` (ex.: `'PROVA' \| 'TRABALHO'`), `maxScore`, `period` (ex.: `'1_BIMESTRE'`), `status: AssessmentStatus` |
+| `Assessment` | `AggregateRoot` | `assessment.ts` | `classGroupId`, `subjectId`, `name`, `type` (ex.: `'EXAM' \| 'ASSIGNMENT'`), `maxScore`, `period` (ex.: `'BIMESTER_1'`), `status: AssessmentStatus` |
 | `Grade` | `Entity` | `grade.ts` | `assessmentId`, `studentId`, `value` (numérico) ou `concept` (string), `status: AssessmentStatus` (herda o status da publicação) |
 
 Value objects — `entities/valueObjects/`:
@@ -60,19 +60,19 @@ Invariantes:
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
 | `ConfigureGradeFormulaUseCase` | `configure-grade-formula.ts` | `segment`, `scaleType`, `weights`, `recoveryMinGrade` | `Either<InvalidWeightsError, { gradeFormula: GradeFormula }>` | `invalid-weights-error.ts` (soma dos pesos deve ser 100) |
-| `CreateAssessmentUseCase` | `create-assessment.ts` | `turmaId`, `disciplinaId`, `name`, `type`, `maxScore`, `period` | `Either<ResourceNotFoundError, { assessment: Assessment }>` | — |
-| `LaunchGradesUseCase` | `launch-grades.ts` | `assessmentId`, `grades: { studentId, value }[]`, `teacherId?` | `Either<ResourceNotFoundError \| InvalidGradeValueError \| NotAllowedError, { grades: Grade[] }>` | `invalid-grade-value-error.ts` |
+| `CreateAssessmentUseCase` | `create-assessment.ts` | `classGroupId`, `subjectId`, `name`, `type`, `maxScore`, `period` | `Either<ResourceNotFoundError, { assessment: Assessment }>` | — |
+| `RecordGradesUseCase` | `record-grades.ts` | `assessmentId`, `grades: { studentId, value }[]`, `teacherId?` | `Either<ResourceNotFoundError \| InvalidGradeValueError \| NotAllowedError, { grades: Grade[] }>` | `invalid-grade-value-error.ts` |
 | `PublishAssessmentUseCase` | `publish-assessment.ts` | `assessmentId` | `Either<ResourceNotFoundError, void>` | — |
-| `CalculateFinalAverageUseCase` | `calculate-final-average.ts` | `studentId`, `turmaId`, `disciplinaId`, `period` | `Either<ResourceNotFoundError, { average: number; recoveryApplied: boolean }>` | — |
-| `GenerateReportCardUseCase` | `generate-report-card.ts` | `studentId`, `period?` | `Either<ResourceNotFoundError, { entries: { disciplina: string; grades: Grade[]; average: number }[] }>` | — |
+| `CalculateFinalAverageUseCase` | `calculate-final-average.ts` | `studentId`, `classGroupId`, `subjectId`, `period` | `Either<ResourceNotFoundError, { average: number; recoveryApplied: boolean }>` | — |
+| `GenerateReportCardUseCase` | `generate-report-card.ts` | `studentId`, `period?` | `Either<ResourceNotFoundError, { entries: { subject: string; grades: Grade[]; average: number }[] }>` | — |
 | `GenerateTranscriptUseCase` | `generate-transcript.ts` | `studentId` | `Either<ResourceNotFoundError, { years: { schoolYear: number; result: FinalResult; averages: Record<string, number> }[] }>` | — |
 
 Ports (`application/repositories/`): `GradeFormulasRepository`, `AssessmentsRepository`, `GradesRepository`.
 
 Regras de negócio principais:
-- `LaunchGradesUseCase`: salva sempre com `Assessment.status = 'DRAFT'` até `PublishAssessmentUseCase` ser chamado; permite reexecução (upsert por `assessmentId + studentId`) para lançamentos incrementais/rascunho. Quando `teacherId` é informado (o controller só o passa se o ator autenticado tiver papel `professor`), exige `HorariosRepository.existsActiveFor(teacherId, turmaId, disciplinaId, date)` (`turmaId`/`disciplinaId` do `Assessment`, `date` = hoje; de `F1-E05`) — senão `NotAllowedError`. Mesma lógica de `RecordAttendanceUseCase` (`F1-E03`): impede lançar nota fora da própria disciplina/turma.
+- `RecordGradesUseCase`: salva sempre com `Assessment.status = 'DRAFT'` até `PublishAssessmentUseCase` ser chamado; permite reexecução (upsert por `assessmentId + studentId`) para lançamentos incrementais/rascunho. Quando `teacherId` é informado (o controller só o passa se o ator autenticado tiver papel `professor`), exige `ScheduleSlotsRepository.existsActiveFor(teacherId, classGroupId, subjectId, date)` (`classGroupId`/`subjectId` do `Assessment`, `date` = hoje; de `F1-E05`) — senão `NotAllowedError`. Mesma lógica de `RecordAttendanceUseCase` (`F1-E03`): impede lançar nota fora da própria disciplina/turma.
 - `PublishAssessmentUseCase`: flip irreversível de `DRAFT → PUBLISHED` (sem endpoint de despublicar nesta ficha).
-- `CalculateFinalAverageUseCase`: aplica `GradeFormula` do segmento da série da turma; se `média < recoveryMinGrade`, busca `Grade` do tipo `'RECUPERACAO'` (mesmo mecanismo de `Assessment.type`) e recalcula conforme a regra fixa descrita acima.
+- `CalculateFinalAverageUseCase`: aplica `GradeFormula` do segmento da série da turma; se `average < recoveryMinGrade`, busca `Grade` do tipo `'RECOVERY'` (mesmo mecanismo de `Assessment.type`) e recalcula conforme a regra fixa descrita acima.
 - `GenerateTranscriptUseCase`: consolida `EnrollmentsRepository` (de `F1-E02`) + médias por ano letivo; usado para documento de transferência.
 
 ## Persistência (`infra/database/prisma`)
@@ -87,22 +87,22 @@ Regras de negócio principais:
 | --- | --- | --- | --- |
 | `POST /grade-formulas` | `configure-grade-formula.controller.ts` | dados de `ConfigureGradeFormulaUseCase` | `grade-formula-presenter.ts` |
 | `POST /assessments` | `create-assessment.controller.ts` | dados de `CreateAssessmentUseCase` | `assessment-presenter.ts` |
-| `POST /assessments/:assessmentId/grades` | `launch-grades.controller.ts` | `{ grades: [{ studentId, value }] }` | `grade-presenter.ts` (lista) |
+| `POST /assessments/:assessmentId/grades` | `record-grades.controller.ts` | `{ grades: [{ studentId, value }] }` | `grade-presenter.ts` (lista) |
 | `PATCH /assessments/:assessmentId/publish` | `publish-assessment.controller.ts` | — (param) | — (204) |
 | `GET /students/:studentId/report-card` | `get-report-card.controller.ts` | query `{ period? }` | `report-card-presenter.ts` |
 | `GET /students/:studentId/transcript` | `get-transcript.controller.ts` | — (param) | `transcript-presenter.ts` (PDF, ver nota abaixo) |
 
 Geração de PDF (boletim/histórico): usar a lib de PDF definida no bootstrap (`F1-E00`) — se ainda não decidida, `pdf-lib` é a opção padrão (leve, sem dependência de headless browser). Reaproveitar a mesma lib em `F1-E07`.
 
-Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`PublishAssessmentUseCase` → `coordenação`; `LaunchGradesUseCase` → `professor` da turma/disciplina; `GenerateReportCardUseCase`/`GenerateTranscriptUseCase` → `responsável`/`aluno`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
+Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`PublishAssessmentUseCase` → `coordenação`; `RecordGradesUseCase` → `professor` da turma/disciplina; `GenerateReportCardUseCase`/`GenerateTranscriptUseCase` → `responsável`/`aluno`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
 ## Frontend (`diceduc-web`)
 
-- `app/(portal)/notas/formulas/page.tsx` — configuração de `GradeFormula` por segmento (`F1-E04-U01`).
-- `app/(portal)/notas/turmas/[turmaId]/lancamento/page.tsx` — lançamento em lote (`F1-E04-U02`).
-- `app/(portal)/notas/[studentId]/boletim/page.tsx` — boletim consumido pelo portal do responsável/aluno (tela compartilhada com `F1-E08`).
-- `features/assessment/components/GradeFormulaForm.tsx`, `LaunchGradesTable.tsx`, `ReportCard.tsx`.
-- `features/assessment/api/assessments.ts` (`configureGradeFormula`, `createAssessment`, `launchGrades`, `publishAssessment`, `getReportCard`, `getTranscript`), `features/assessment/schemas/assessment.ts`.
+- `app/(portal)/grades/formulas/page.tsx` — configuração de `GradeFormula` por segmento (`F1-E04-U01`).
+- `app/(portal)/grades/class-groups/[classGroupId]/entry/page.tsx` — lançamento em lote (`F1-E04-U02`).
+- `app/(portal)/grades/[studentId]/report-card/page.tsx` — boletim consumido pelo portal do responsável/aluno (tela compartilhada com `F1-E08`).
+- `features/assessment/components/GradeFormulaForm.tsx`, `RecordGradesTable.tsx`, `ReportCard.tsx`.
+- `features/assessment/api/assessments.ts` (`configureGradeFormula`, `createAssessment`, `recordGrades`, `publishAssessment`, `getReportCard`, `getTranscript`), `features/assessment/schemas/assessment.ts`.
 
 ## Arquivos a criar/editar (checklist)
 
@@ -113,7 +113,7 @@ Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`Publi
 - [ ] `diceduc-api/src/domain/assessment/enterprise/entities/valueObjects/assessment-status.ts`
 - [ ] `diceduc-api/src/domain/assessment/application/useCases/configure-grade-formula.ts` (+ errors/, + .spec.ts)
 - [ ] `diceduc-api/src/domain/assessment/application/useCases/create-assessment.ts` (+ .spec.ts)
-- [ ] `diceduc-api/src/domain/assessment/application/useCases/launch-grades.ts` (+ errors/, + .spec.ts)
+- [ ] `diceduc-api/src/domain/assessment/application/useCases/record-grades.ts` (+ errors/, + .spec.ts)
 - [ ] `diceduc-api/src/domain/assessment/application/useCases/publish-assessment.ts` (+ .spec.ts)
 - [ ] `diceduc-api/src/domain/assessment/application/useCases/calculate-final-average.ts` (+ .spec.ts)
 - [ ] `diceduc-api/src/domain/assessment/application/useCases/generate-report-card.ts` (+ .spec.ts)
@@ -126,9 +126,9 @@ Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`Publi
 - [ ] `diceduc-api/src/infra/database/prisma/mappers/*.ts` (3 mappers, ver seção Persistência)
 - [ ] `diceduc-api/src/infra/http/controllers/*.ts` (6 controllers, ver seção HTTP)
 - [ ] `diceduc-api/src/infra/http/presenters/*.ts` (4 presenters, ver seção HTTP)
-- [ ] `diceduc-web/app/(portal)/notas/formulas/page.tsx`
-- [ ] `diceduc-web/app/(portal)/notas/turmas/[turmaId]/lancamento/page.tsx`
-- [ ] `diceduc-web/app/(portal)/notas/[studentId]/boletim/page.tsx`
+- [ ] `diceduc-web/app/(portal)/grades/formulas/page.tsx`
+- [ ] `diceduc-web/app/(portal)/grades/class-groups/[classGroupId]/entry/page.tsx`
+- [ ] `diceduc-web/app/(portal)/grades/[studentId]/report-card/page.tsx`
 - [ ] `diceduc-web/features/assessment/components/*.tsx`
 - [ ] `diceduc-web/features/assessment/api/assessments.ts`
 - [ ] `diceduc-web/features/assessment/schemas/assessment.ts`
@@ -137,7 +137,7 @@ Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`Publi
 
 - Repositórios in-memory: `in-memory-grade-formulas-repository.ts`, `in-memory-assessments-repository.ts`, `in-memory-grades-repository.ts`.
 - Factories: `make-grade-formula.ts`, `make-assessment.ts`, `make-grade.ts`.
-- Unit specs: validação de pesos somando 100 (`ConfigureGradeFormulaUseCase`), validação de nota fora da escala (`LaunchGradesUseCase`), professor sem horário vigente naquela turma/disciplina → `NotAllowedError` (`LaunchGradesUseCase`, usando o `in-memory-horarios-repository.ts` de `F1-E05`), boletim não expõe rascunho (`GenerateReportCardUseCase`), cálculo de recuperação (`CalculateFinalAverageUseCase`).
+- Unit specs: validação de pesos somando 100 (`ConfigureGradeFormulaUseCase`), validação de nota fora da escala (`RecordGradesUseCase`), professor sem horário vigente naquela turma/disciplina → `NotAllowedError` (`RecordGradesUseCase`, usando o `in-memory-schedule-slots-repository.ts` de `F1-E05`), boletim não expõe rascunho (`GenerateReportCardUseCase`), cálculo de recuperação (`CalculateFinalAverageUseCase`).
 - E2E: um `.e2e-spec.ts` por controller listado na seção HTTP.
 
 ## Definition of Done

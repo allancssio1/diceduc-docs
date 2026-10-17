@@ -51,28 +51,28 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 
 ## Rotas e controle de acesso (`diceduc-web`)
 
-- `proxy.ts` (`F1-E10`) já resolve/renova a sessão (`arquitetura-frontend.md` §6), mas só faz a checagem otimista de que o cookie existe — não sabe o papel do usuário. Esta ficha adiciona a checagem de **papel** por grupo de rota — responsável só acessa `/(portal)/responsavel/**`, professor só `/(portal)/professor/**`, aluno só `/(portal)/aluno/**` — no `layout.tsx` de cada área, via `getSession()` (`GET /me`, `F1-E10`; papéis de verdade vêm de `F1-E09`, já resolvido no backend). Como um layout não é re-renderizado em navegação entre páginas irmãs, as páginas de cada área também chamam `getSession()` (o `cache()` do React evita chamada duplicada — ver `arquitetura-frontend.md` §6); a proteção de fato é sempre a API, isso aqui só evita renderizar tela/ação errada.
+- `proxy.ts` (`F1-E10`) já resolve/renova a sessão (`arquitetura-frontend.md` §6), mas só faz a checagem otimista de que o cookie existe — não sabe o papel do usuário. Esta ficha adiciona a checagem de **papel** por grupo de rota — responsável só acessa `/(portal)/guardian/**`, professor só `/(portal)/teacher/**`, aluno só `/(portal)/student/**` — no `layout.tsx` de cada área, via `getSession()` (`GET /me`, `F1-E10`; papéis de verdade vêm de `F1-E09`, já resolvido no backend). Como um layout não é re-renderizado em navegação entre páginas irmãs, as páginas de cada área também chamam `getSession()` (o `cache()` do React evita chamada duplicada — ver `arquitetura-frontend.md` §6); a proteção de fato é sempre a API, isso aqui só evita renderizar tela/ação errada.
 - `shared/auth`: hook `useSession()` expõe `role` e, para responsável, o `guardianId`/lista de filhos (via `ListGuardianStudentsUseCase`).
 
 ### Portal do responsável (`F1-E08-U01`)
 
-- `app/(portal)/responsavel/page.tsx` — seletor de filho (chama `GET /guardians/me/students`) + resumo.
-- `app/(portal)/responsavel/[studentId]/frequencia/page.tsx` — consome `GET /turmas/:turmaId/attendance/below-threshold` não se aplica aqui; usa antes um endpoint de histórico do aluno — **nota:** `F1-E03` não expõe "frequência de um aluno específico" diretamente, só "abaixo do limite por turma". Adicionar aqui, como parte desta ficha, `GET /students/:studentId/attendance-summary` (`get-student-attendance-summary.controller.ts` + `GetStudentAttendanceSummaryUseCase` em `attendance/application/useCases/`, usando `AttendanceRecordsRepository.calculatePercentage` já existente de `F1-E03`) para retornar o percentual e o histórico de faltas do aluno.
-- `app/(portal)/responsavel/[studentId]/boletim/page.tsx` — consome `GET /students/:studentId/report-card` (`F1-E04`).
-- `app/(portal)/responsavel/[studentId]/financeiro/page.tsx` — consome `GET /financial-status?studentId=` (`F1-E06`).
-- `app/(portal)/responsavel/[studentId]/comunicados/page.tsx` — placeholder vazio (ver seção de escopo acima).
+- `app/(portal)/guardian/page.tsx` — seletor de filho (chama `GET /guardians/me/students`) + resumo.
+- `app/(portal)/guardian/[studentId]/attendance/page.tsx` — consome `GET /class-groups/:classGroupId/attendance/below-threshold` não se aplica aqui; usa antes um endpoint de histórico do aluno — **nota:** `F1-E03` não expõe "frequência de um aluno específico" diretamente, só "abaixo do limite por turma". Adicionar aqui, como parte desta ficha, `GET /students/:studentId/attendance-summary` (`get-student-attendance-summary.controller.ts` + `GetStudentAttendanceSummaryUseCase` em `attendance/application/useCases/`, usando `AttendanceRecordsRepository.calculatePercentage` já existente de `F1-E03`) para retornar o percentual e o histórico de faltas do aluno.
+- `app/(portal)/guardian/[studentId]/report-card/page.tsx` — consome `GET /students/:studentId/report-card` (`F1-E04`).
+- `app/(portal)/guardian/[studentId]/finance/page.tsx` — consome `GET /financial-status?studentId=` (`F1-E06`).
+- `app/(portal)/guardian/[studentId]/announcements/page.tsx` — placeholder vazio (ver seção de escopo acima).
 
 ### Portal do professor (`F1-E08-U02`)
 
-- `app/(portal)/professor/minha-grade/page.tsx` — reusa a tela de `F1-E05-U02` (`GET /teachers/:teacherId/schedule`).
-- `app/(portal)/professor/turmas/[turmaId]/chamada/page.tsx` — reusa componente `AttendanceSheet` de `F1-E03`.
-- `app/(portal)/professor/turmas/[turmaId]/notas/page.tsx` — reusa componente `LaunchGradesTable` de `F1-E04`.
+- `app/(portal)/teacher/my-schedule/page.tsx` — reusa a tela de `F1-E05-U02` (`GET /teachers/:teacherId/schedule`).
+- `app/(portal)/teacher/class-groups/[classGroupId]/roll-call/page.tsx` — reusa componente `AttendanceSheet` de `F1-E03`.
+- `app/(portal)/teacher/class-groups/[classGroupId]/grades/page.tsx` — reusa componente `LaunchGradesTable` de `F1-E04`.
 - Sem tela nova de "conteúdo de aula": nenhum épico de F1 modela essa entidade — fica fora de escopo, mesmo tratamento dado a comunicados (sinalizar como pendência para épico futuro, provavelmente `F2-E08` LMS/EAD).
 
 ### Portal do aluno (`F1-E08-U03`)
 
-- `app/(portal)/aluno/boletim/page.tsx` — consome `GET /students/:studentId/report-card` com `studentId` resolvido do próprio usuário logado (aluno só vê a si mesmo).
-- `app/(portal)/aluno/frequencia/page.tsx` — consome o novo `GET /students/:studentId/attendance-summary`.
+- `app/(portal)/student/report-card/page.tsx` — consome `GET /students/:studentId/report-card` com `studentId` resolvido do próprio usuário logado (aluno só vê a si mesmo).
+- `app/(portal)/student/attendance/page.tsx` — consome o novo `GET /students/:studentId/attendance-summary`.
 - Ambas as telas são somente leitura — nenhum botão de edição renderizado para o papel `aluno` (reforçado também no backend: os controllers de lançamento já exigem perfil `professor`/`secretaria`, não `aluno`; e mesmo que o frontend tentasse mandar um `studentId` diferente, `allowedStudentIds` de `F1-E09` restringe o aluno a si mesmo — a UI nunca é a única barreira).
 
 ## Componentes e API client (`diceduc-web`)
@@ -91,16 +91,16 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 - [ ] `diceduc-api/src/infra/http/controllers/get-student-attendance-summary.controller.ts`
 - [ ] `diceduc-web/proxy.ts` (editar — checagem de papel por grupo de rota)
 - [ ] `diceduc-web/shared/auth/useSession.ts` (editar — expor `role`/`guardianId`)
-- [ ] `diceduc-web/app/(portal)/responsavel/page.tsx`
-- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/frequencia/page.tsx`
-- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/boletim/page.tsx`
-- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/financeiro/page.tsx`
-- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/comunicados/page.tsx` (placeholder)
-- [ ] `diceduc-web/app/(portal)/professor/minha-grade/page.tsx`
-- [ ] `diceduc-web/app/(portal)/professor/turmas/[turmaId]/chamada/page.tsx`
-- [ ] `diceduc-web/app/(portal)/professor/turmas/[turmaId]/notas/page.tsx`
-- [ ] `diceduc-web/app/(portal)/aluno/boletim/page.tsx`
-- [ ] `diceduc-web/app/(portal)/aluno/frequencia/page.tsx`
+- [ ] `diceduc-web/app/(portal)/guardian/page.tsx`
+- [ ] `diceduc-web/app/(portal)/guardian/[studentId]/attendance/page.tsx`
+- [ ] `diceduc-web/app/(portal)/guardian/[studentId]/report-card/page.tsx`
+- [ ] `diceduc-web/app/(portal)/guardian/[studentId]/finance/page.tsx`
+- [ ] `diceduc-web/app/(portal)/guardian/[studentId]/announcements/page.tsx` (placeholder)
+- [ ] `diceduc-web/app/(portal)/teacher/my-schedule/page.tsx`
+- [ ] `diceduc-web/app/(portal)/teacher/class-groups/[classGroupId]/roll-call/page.tsx`
+- [ ] `diceduc-web/app/(portal)/teacher/class-groups/[classGroupId]/grades/page.tsx`
+- [ ] `diceduc-web/app/(portal)/student/report-card/page.tsx`
+- [ ] `diceduc-web/app/(portal)/student/attendance/page.tsx`
 - [ ] `diceduc-web/features/people/api/guardians.ts`
 - [ ] `diceduc-web/features/attendance/api/attendance.ts` (editar)
 - [ ] `diceduc-web/features/attendance/components/AttendanceSummaryCard.tsx`
@@ -108,14 +108,14 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 ## Testes
 
 - Backend: unit spec para `ListGuardianStudentsUseCase` e `GetStudentAttendanceSummaryUseCase` (repositórios in-memory já existentes de `F1-E01`/`F1-E03`); e2e para os dois novos controllers, incluindo **IDOR**: responsável autenticado pedindo `attendance-summary`/`report-card`/`financial-status` de um `studentId` que não é filho dele → `404` (o `allowedStudentIds` de `F1-E09` resolve isso nos repositórios já existentes, sem lógica nova nestes dois use cases).
-- Frontend: teste de componente para `AttendanceSummaryCard`; teste do `layout.tsx` de cada área garantindo que um usuário com papel `RESPONSAVEL` não acessa `/(portal)/professor/**` (redirect) — a checagem agora é via `getSession()`, não mais uma prop simples de `role` no `proxy.ts` (ver "Rotas e controle de acesso").
+- Frontend: teste de componente para `AttendanceSummaryCard`; teste do `layout.tsx` de cada área garantindo que um usuário com papel `GUARDIAN` não acessa `/(portal)/teacher/**` (redirect) — a checagem agora é via `getSession()`, não mais uma prop simples de `role` no `proxy.ts` (ver "Rotas e controle de acesso").
 - E2E (Playwright, crítico, roda no CI do `diceduc-web` a partir desta ficha — job sobe Postgres + `diceduc-api` no mesmo workflow, ver `F1-E00`): login como responsável → seleciona filho → vê boletim e financeiro; login como aluno → vê boletim (sem botão de edição); responsável tentando abrir a URL do boletim de outro aluno (fora dos seus filhos) → erro/404, nunca o boletim de fato.
 
 ## Definition of Done
 
 - [ ] Critérios de aceite de `F1-E08-U01` a `F1-E08-U03` no BACKLOG satisfeitos (exceto comunicados, explicitamente fora de escopo).
 - [ ] `ListGuardianStudentsUseCase` e `GetStudentAttendanceSummaryUseCase` implementados com testes passando.
-- [ ] Cada portal (`responsavel`, `professor`, `aluno`) acessível apenas pelo papel correspondente.
+- [ ] Cada portal (`guardian`, `teacher`, `student`) acessível apenas pelo papel correspondente.
 - [ ] Portal do responsável permite alternar entre múltiplos filhos.
 - [ ] Acesso do aluno é comprovadamente somente leitura (nenhum controle de edição renderizado nem endpoint de escrita aceito para esse papel).
 - [ ] Testes de IDOR (acima) passando para os três endpoints consumidos pelos portais (`report-card`, `attendance-summary`, `financial-status`).

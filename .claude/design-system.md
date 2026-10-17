@@ -126,7 +126,7 @@ Mecanismo de tenant completo em [arquitetura-ignite.md §11](arquitetura-ignite.
 School.primaryColor → Group.primaryColor → preset (--primary do §2)
 ```
 
-Resolvida no servidor, em `app/[grupo]/[escola]/layout.tsx`, na mesma chamada que já busca o branding (`GET /public/branding/:grupo/:escola`, de `F1-E0A`) — sem requisição extra. Se nenhum dos dois tiver `primaryColor`, não sobrescreve nada e o preset prevalece.
+Resolvida no servidor, em `app/[group]/[school]/layout.tsx`, na mesma chamada que já busca o branding (`GET /public/branding/:groupSlug/:schoolSlug`, de `F1-E0A`) — sem requisição extra. Se nenhum dos dois tiver `primaryColor`, não sobrescreve nada e o preset prevalece.
 
 ### Tokens sobrescritos
 
@@ -159,7 +159,7 @@ Os tokens `--sidebar-*` do preset (§2) pressupõem um layout com sidebar — é
 
 - **Sidebar** — navegação lateral (usar o bloco `sidebar` do shadcn, não um componente próprio). Itens filtrados pelo papel do usuário, resolvido via `getSession()` (`arquitetura-frontend.md §6`) — mesmo princípio da checagem de área por papel já descrita lá.
 - **Header** — nome/logo do tenant (do branding, §5), `ThemeToggle` (§4), menu da conta (nome do usuário, link para `minha-conta`, sair).
-- **Área de conteúdo** — onde a página (`app/[grupo]/[escola]/(portal)/.../page.tsx`) renderiza.
+- **Área de conteúdo** — onde a página (`app/[group]/[school]/(portal)/.../page.tsx`) renderiza.
 - `(public)/` (login, primeiro acesso) **não** usa este shell — layout simples, centralizado, sem sidebar.
 
 ## 7. Inventário de componentes shadcn

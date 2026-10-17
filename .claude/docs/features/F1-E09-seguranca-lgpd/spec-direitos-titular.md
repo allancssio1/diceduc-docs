@@ -54,9 +54,9 @@ Perfis exigidos: `export-student-data` → `responsável`/`aluno`/`secretaria`/`
 
 ## Frontend (`diceduc-web`)
 
-- `app/(public)/privacidade/page.tsx` — página de privacidade: contato do encarregado (`group.dpoName`/`dpoEmail`, via `useSession()`/`getMe`), explicação de como pedir correção/eliminação de dados, e resumo em linguagem simples da política de retenção (ver seção abaixo). Pública porque não depende de estar logado numa escola específica.
-- `app/(portal)/responsavel/[studentId]/page.tsx` (editar, de `F1-E08`) — botão "Baixar meus dados" chamando `GET /students/:studentId/data-export`.
-- `app/(portal)/cadastros/alunos/[studentId]/page.tsx` (editar, de `F1-E01`) — mesmo botão na visão da secretaria.
+- `app/(public)/privacy/page.tsx` — página de privacidade: contato do encarregado (`group.dpoName`/`dpoEmail`, via `useSession()`/`getMe`), explicação de como pedir correção/eliminação de dados, e resumo em linguagem simples da política de retenção (ver seção abaixo). Pública porque não depende de estar logado numa escola específica.
+- `app/(portal)/guardian/[studentId]/page.tsx` (editar, de `F1-E08`) — botão "Baixar meus dados" chamando `GET /students/:studentId/data-export`.
+- `app/(portal)/records/students/[studentId]/page.tsx` (editar, de `F1-E01`) — mesmo botão na visão da secretaria.
 - `features/reporting/api/reports.ts` (editar, de `F1-E07`) — `exportStudentData` (retorna blob para download, mesmo padrão dos outros relatórios).
 
 ## Proposta de retenção (a validar com o jurídico)
@@ -79,9 +79,9 @@ Tabela de referência para orientar a página de privacidade — **não implemen
 - [ ] `diceduc-api/prisma/schema.prisma` (editar — enum `AuditAction`)
 - [ ] `diceduc-api/src/infra/http/controllers/export-student-data.controller.ts`
 - [ ] `diceduc-api/src/infra/http/controllers/get-me.controller.ts` (editar, de `F1-E10` — incluir `group.dpoName`/`dpoEmail`)
-- [ ] `diceduc-web/app/(public)/privacidade/page.tsx`
-- [ ] `diceduc-web/app/(portal)/responsavel/[studentId]/page.tsx` (editar)
-- [ ] `diceduc-web/app/(portal)/cadastros/alunos/[studentId]/page.tsx` (editar)
+- [ ] `diceduc-web/app/(public)/privacy/page.tsx`
+- [ ] `diceduc-web/app/(portal)/guardian/[studentId]/page.tsx` (editar)
+- [ ] `diceduc-web/app/(portal)/records/students/[studentId]/page.tsx` (editar)
 - [ ] `diceduc-web/features/reporting/api/reports.ts` (editar)
 
 ## Testes

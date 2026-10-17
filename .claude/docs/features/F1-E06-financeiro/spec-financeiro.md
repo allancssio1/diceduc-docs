@@ -60,9 +60,9 @@ Invariantes:
 | `CreateBillingPlanUseCase` | `create-billing-plan.ts` | `name`, `baseAmount`, `installments`, `dueDay` | `Either<InvalidAmountError, { billingPlan: BillingPlan }>` | `invalid-amount-error.ts` |
 | `LinkBillingPlanToStudentUseCase` | `link-billing-plan-to-student.ts` | `studentId`, `billingPlanId`, `schoolYearId`, `discountAmount?` | `Either<ResourceNotFoundError, { invoices: Invoice[] }>` | — |
 | `RegisterPaymentUseCase` | `register-payment.ts` | `invoiceId`, `paidAmount`, `paidAt`, `paymentMethod` | `Either<ResourceNotFoundError \| InvoiceAlreadyPaidError, { invoice: Invoice }>` | `invoice-already-paid-error.ts` |
-| `GetFinancialStatusUseCase` | `get-financial-status.ts` | `studentId?`, `turmaId?`, `serieId?` (ao menos um) | `Either<ResourceNotFoundError, { totalOpen: number; totalOverdue: number; totalUpcoming: number; invoices: Invoice[] }>` | — |
+| `GetFinancialStatusUseCase` | `get-financial-status.ts` | `studentId?`, `classGroupId?`, `gradeLevelId?` (ao menos um) | `Either<ResourceNotFoundError, { totalOpen: number; totalOverdue: number; totalUpcoming: number; invoices: Invoice[] }>` | — |
 
-Ports (`application/repositories/`): `BillingPlansRepository`, `InvoicesRepository` — inclui `findManyByStudent`, `findManyByTurma` (via join com `Enrollment` de `F1-E02`), `findManyBySerie`.
+Ports (`application/repositories/`): `BillingPlansRepository`, `InvoicesRepository` — inclui `findManyByStudent`, `findManyByClassGroup` (via join com `Enrollment` de `F1-E02`), `findManyByGradeLevel`.
 
 Regras de negócio principais:
 - `LinkBillingPlanToStudentUseCase`: gera `installments` títulos de uma vez, com `dueDate` calculado a partir de `dueDay` para cada mês do ano letivo a partir da matrícula.
@@ -83,15 +83,15 @@ Regras de negócio principais:
 | `POST /billing-plans` | `create-billing-plan.controller.ts` | dados de `CreateBillingPlanUseCase` | `billing-plan-presenter.ts` |
 | `POST /students/:studentId/billing-plans` | `link-billing-plan-to-student.controller.ts` | `{ billingPlanId, schoolYearId, discountAmount? }` | `invoice-presenter.ts` (lista) |
 | `POST /invoices/:invoiceId/payment` | `register-payment.controller.ts` | dados de `RegisterPaymentUseCase` (exceto `invoiceId`) | `invoice-presenter.ts` |
-| `GET /financial-status` | `get-financial-status.controller.ts` | query `{ studentId?, turmaId?, serieId? }` | JSON agregado (`totalOpen`, `totalOverdue`, `totalUpcoming`, `invoices`) |
+| `GET /financial-status` | `get-financial-status.controller.ts` | query `{ studentId?, classGroupId?, gradeLevelId? }` | JSON agregado (`totalOpen`, `totalOverdue`, `totalUpcoming`, `invoices`) |
 
 Perfis exigidos: todas as rotas → `financeiro`/`secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
 ## Frontend (`diceduc-web`)
 
-- `app/(portal)/financeiro/planos/page.tsx` — CRUD de `BillingPlan` (`F1-E06-U01`).
-- `app/(portal)/financeiro/alunos/[studentId]/page.tsx` — títulos do aluno, baixa manual (`F1-E06-U02`).
-- `app/(portal)/financeiro/inadimplencia/page.tsx` — relatório filtrável por turma/série (`F1-E06-U03`).
+- `app/(portal)/finance/plans/page.tsx` — CRUD de `BillingPlan` (`F1-E06-U01`).
+- `app/(portal)/finance/students/[studentId]/page.tsx` — títulos do aluno, baixa manual (`F1-E06-U02`).
+- `app/(portal)/finance/delinquency/page.tsx` — relatório filtrável por turma/série (`F1-E06-U03`).
 - `features/finance/components/BillingPlanForm.tsx`, `InvoiceList.tsx`, `RegisterPaymentDialog.tsx`, `DelinquencySummary.tsx`.
 - `features/finance/api/finance.ts` (`createBillingPlan`, `linkBillingPlanToStudent`, `registerPayment`, `getFinancialStatus`), `features/finance/schemas/finance.ts`.
 
@@ -115,9 +115,9 @@ Perfis exigidos: todas as rotas → `financeiro`/`secretaria` (guard fino vem de
 - [ ] `diceduc-api/src/infra/database/prisma/mappers/invoice-mapper.ts`
 - [ ] `diceduc-api/src/infra/http/controllers/*.ts` (4 controllers, ver seção HTTP)
 - [ ] `diceduc-api/src/infra/http/presenters/billing-plan-presenter.ts`, `invoice-presenter.ts`
-- [ ] `diceduc-web/app/(portal)/financeiro/planos/page.tsx`
-- [ ] `diceduc-web/app/(portal)/financeiro/alunos/[studentId]/page.tsx`
-- [ ] `diceduc-web/app/(portal)/financeiro/inadimplencia/page.tsx`
+- [ ] `diceduc-web/app/(portal)/finance/plans/page.tsx`
+- [ ] `diceduc-web/app/(portal)/finance/students/[studentId]/page.tsx`
+- [ ] `diceduc-web/app/(portal)/finance/delinquency/page.tsx`
 - [ ] `diceduc-web/features/finance/components/*.tsx`
 - [ ] `diceduc-web/features/finance/api/finance.ts`
 - [ ] `diceduc-web/features/finance/schemas/finance.ts`

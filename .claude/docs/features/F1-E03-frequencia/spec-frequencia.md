@@ -24,13 +24,13 @@ Registrar presença/falta por turma e aula, calcular automaticamente o percentua
 
 ## Decisão resolvida nesta spec
 
-O épico sinalizava risco de `F1-E05` (horários) não existir ainda. Resolução: **não modelar uma entidade `ClassSession` própria**. `AttendanceRecord` guarda diretamente `turmaId + disciplinaId + date`, sem depender de um `Horario` específico — "uma aula" é o par `(turma, disciplina, data)`, suficiente para os critérios de aceite. Se `F1-E05` já existir, o formulário de chamada pode pré-selecionar `disciplinaId` a partir da grade do dia, mas isso é só UX (frontend), não uma dependência de dado no backend.
+O épico sinalizava risco de `F1-E05` (horários) não existir ainda. Resolução: **não modelar uma entidade `ClassSession` própria**. `AttendanceRecord` guarda diretamente `classGroupId + subjectId + date`, sem depender de um `ScheduleSlot` específico — "uma aula" é o par `(classGroup, subject, date)`, suficiente para os critérios de aceite. Se `F1-E05` já existir, o formulário de chamada pode pré-selecionar `subjectId` a partir da grade do dia, mas isso é só UX (frontend), não uma dependência de dado no backend.
 
 ## Multi-tenancy
 
 Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [`F1-E0A`](../F1-E0A-tenancy/spec-tenancy.md). Específico deste épico:
 
-- `AttendanceRecord` carrega `groupId` e `schoolId` (herdado da `turmaId`).
+- `AttendanceRecord` carrega `groupId` e `schoolId` (herdado da `classGroupId`).
 - `GetAttendanceBelowThresholdUseCase` (consulta por turma) já fica automaticamente restrito ao escopo do usuário via `GroupContext` — nenhuma lógica adicional de filtro necessária no use case além do que a Prisma extension de `F1-E0A` já aplica.
 
 ## Modelo de domínio (`enterprise`)
@@ -39,7 +39,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
-| `AttendanceRecord` | `Entity` | `attendance-record.ts` | `studentId`, `turmaId`, `disciplinaId`, `date`, `status: AttendanceStatus`, `justification?: string`, `justifiedBy?: string`, `justifiedAt?: Date`, `recordedBy: string`, `createdAt`, `updatedAt` |
+| `AttendanceRecord` | `Entity` | `attendance-record.ts` | `studentId`, `classGroupId`, `subjectId`, `date`, `status: AttendanceStatus`, `justification?: string`, `justifiedBy?: string`, `justifiedAt?: Date`, `recordedBy: string`, `createdAt`, `updatedAt` |
 
 Value objects — `entities/valueObjects/`:
 - `attendance-status.ts` — `AttendanceStatus = 'PRESENT' | 'ABSENT' | 'JUSTIFIED'`.
@@ -54,20 +54,20 @@ Invariantes:
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
-| `RecordAttendanceUseCase` | `record-attendance.ts` | `turmaId`, `disciplinaId`, `date`, `records: { studentId, status }[]`, `recordedBy`, `teacherId?` | `Either<InvalidCalendarDateError \| NotAllowedError, { records: AttendanceRecord[] }>` | `invalid-calendar-date-error.ts` |
-| `GetAttendanceBelowThresholdUseCase` | `get-attendance-below-threshold.ts` | `turmaId`, `thresholdPercentage` | `Either<ResourceNotFoundError, { students: { studentId: string; percentage: number }[] }>` | — |
+| `RecordAttendanceUseCase` | `record-attendance.ts` | `classGroupId`, `subjectId`, `date`, `records: { studentId, status }[]`, `recordedBy`, `teacherId?` | `Either<InvalidCalendarDateError \| NotAllowedError, { records: AttendanceRecord[] }>` | `invalid-calendar-date-error.ts` |
+| `GetAttendanceBelowThresholdUseCase` | `get-attendance-below-threshold.ts` | `classGroupId`, `thresholdPercentage` | `Either<ResourceNotFoundError, { students: { studentId: string; percentage: number }[] }>` | — |
 | `JustifyAbsenceUseCase` | `justify-absence.ts` | `attendanceRecordId`, `justification`, `justifiedBy` | `Either<ResourceNotFoundError \| AbsenceAlreadyJustifiedError, { record: AttendanceRecord }>` | `absence-already-justified-error.ts` |
 
-Ports (`application/repositories/`): `AttendanceRecordsRepository` — inclui `findByTurmaAndDate(turmaId, disciplinaId, date)`, `calculatePercentage(studentId, turmaId): Promise<number>` (usado tanto pelo use case de limiar quanto futuramente pelo `AttendanceStatsProvider` de `F1-E02`).
+Ports (`application/repositories/`): `AttendanceRecordsRepository` — inclui `findByClassGroupAndDate(classGroupId, subjectId, date)`, `calculatePercentage(studentId, classGroupId): Promise<number>` (usado tanto pelo use case de limiar quanto futuramente pelo `AttendanceStatsProvider` de `F1-E02`).
 
 Regras de negócio principais:
-- `RecordAttendanceUseCase`: grava em lote um registro por aluno da turma para a mesma `(turmaId, disciplinaId, date)`; se já existir chamada para essa combinação, sobrescreve os registros existentes (idempotente); valida a data contra o calendário letivo antes de salvar qualquer registro. Quando `teacherId` é informado (o controller só o passa se o ator autenticado tiver papel `professor`, não `secretaria`/`coordenação`), exige `HorariosRepository.existsActiveFor(teacherId, turmaId, disciplinaId, date)` (de `F1-E05`) antes de gravar — senão `NotAllowedError`. Evita que um professor registre chamada de uma turma/disciplina onde não leciona, mesmo tendo o papel correto.
+- `RecordAttendanceUseCase`: grava em lote um registro por aluno da turma para a mesma `(classGroupId, subjectId, date)`; se já existir chamada para essa combinação, sobrescreve os registros existentes (idempotente); valida a data contra o calendário letivo antes de salvar qualquer registro. Quando `teacherId` é informado (o controller só o passa se o ator autenticado tiver papel `professor`, não `secretaria`/`coordenação`), exige `ScheduleSlotsRepository.existsActiveFor(teacherId, classGroupId, subjectId, date)` (de `F1-E05`) antes de gravar — senão `NotAllowedError`. Evita que um professor registre chamada de uma turma/disciplina onde não leciona, mesmo tendo o papel correto.
 - `GetAttendanceBelowThresholdUseCase`: calcula `calculatePercentage` por aluno ativo da turma e retorna só os abaixo de `thresholdPercentage`.
 - `JustifyAbsenceUseCase`: só aceita registros com `status = 'ABSENT'`; grava auditoria mínima (`justifiedBy`, `justifiedAt`) — trilha de auditoria completa/consultável fica em `F1-E09`, aqui só os campos na própria entidade.
 
 ## Persistência (`infra/database/prisma`)
 
-- `diceduc-api/prisma/schema.prisma`: novo model `AttendanceRecord` (índice único em `studentId + turmaId + disciplinaId + date`); enum `AttendanceStatus`.
+- `diceduc-api/prisma/schema.prisma`: novo model `AttendanceRecord` (índice único em `studentId + classGroupId + subjectId + date`); enum `AttendanceStatus`.
 - Repositório: `infra/database/prisma/repositories/prisma-attendance-records-repository.ts`.
 - Mapper: `infra/database/prisma/mappers/attendance-record-mapper.ts`.
 
@@ -75,16 +75,16 @@ Regras de negócio principais:
 
 | Rota | Controller | Schema Zod (entrada) | Presenter |
 | --- | --- | --- | --- |
-| `POST /turmas/:turmaId/attendance` | `record-attendance.controller.ts` | `{ disciplinaId, date, records: [{ studentId, status }] }` | `attendance-record-presenter.ts` (lista) |
-| `GET /turmas/:turmaId/attendance/below-threshold` | `get-attendance-below-threshold.controller.ts` | query `{ threshold }` | JSON simples `{ studentId, percentage }[]` |
+| `POST /class-groups/:classGroupId/attendance` | `record-attendance.controller.ts` | `{ subjectId, date, records: [{ studentId, status }] }` | `attendance-record-presenter.ts` (lista) |
+| `GET /class-groups/:classGroupId/attendance/below-threshold` | `get-attendance-below-threshold.controller.ts` | query `{ threshold }` | JSON simples `{ studentId, percentage }[]` |
 | `PATCH /attendance/:attendanceRecordId/justify` | `justify-absence.controller.ts` | `{ justification }` | `attendance-record-presenter.ts` |
 
 Perfis exigidos: `RecordAttendanceUseCase` → `professor` da turma; `GetAttendanceBelowThresholdUseCase` → `coordenação`; `JustifyAbsenceUseCase` → `secretaria` (guard fino vem de `F1-E09`; por ora `JwtAuthGuard` padrão).
 
 ## Frontend (`diceduc-web`)
 
-- `app/(portal)/frequencia/turmas/[turmaId]/chamada/page.tsx` — chamada do dia (`F1-E03-U01`), tela do professor.
-- `app/(portal)/frequencia/abaixo-do-limite/page.tsx` — lista filtrável por turma (`F1-E03-U02`), tela da coordenação.
+- `app/(portal)/attendance/class-groups/[classGroupId]/roll-call/page.tsx` — chamada do dia (`F1-E03-U01`), tela do professor.
+- `app/(portal)/attendance/below-threshold/page.tsx` — lista filtrável por turma (`F1-E03-U02`), tela da coordenação.
 - `features/attendance/components/AttendanceSheet.tsx`, `BelowThresholdList.tsx`, `JustifyAbsenceDialog.tsx`.
 - `features/attendance/api/attendance.ts` (`recordAttendance`, `getBelowThreshold`, `justifyAbsence`), `features/attendance/schemas/attendance.ts`.
 
@@ -103,8 +103,8 @@ Perfis exigidos: `RecordAttendanceUseCase` → `professor` da turma; `GetAttenda
 - [ ] `diceduc-api/src/infra/http/controllers/get-attendance-below-threshold.controller.ts`
 - [ ] `diceduc-api/src/infra/http/controllers/justify-absence.controller.ts`
 - [ ] `diceduc-api/src/infra/http/presenters/attendance-record-presenter.ts`
-- [ ] `diceduc-web/app/(portal)/frequencia/turmas/[turmaId]/chamada/page.tsx`
-- [ ] `diceduc-web/app/(portal)/frequencia/abaixo-do-limite/page.tsx`
+- [ ] `diceduc-web/app/(portal)/attendance/class-groups/[classGroupId]/roll-call/page.tsx`
+- [ ] `diceduc-web/app/(portal)/attendance/below-threshold/page.tsx`
 - [ ] `diceduc-web/features/attendance/components/AttendanceSheet.tsx`, `BelowThresholdList.tsx`, `JustifyAbsenceDialog.tsx`
 - [ ] `diceduc-web/features/attendance/api/attendance.ts`
 - [ ] `diceduc-web/features/attendance/schemas/attendance.ts`
@@ -113,7 +113,7 @@ Perfis exigidos: `RecordAttendanceUseCase` → `professor` da turma; `GetAttenda
 
 - Repositório in-memory: `in-memory-attendance-records-repository.ts`.
 - Factory: `make-attendance-record.ts`.
-- Unit specs: bloqueio por data fora do calendário letivo (`RecordAttendanceUseCase`), professor sem horário vigente naquela turma/disciplina/data → `NotAllowedError` (`RecordAttendanceUseCase`, usando o `in-memory-horarios-repository.ts` de `F1-E05`), cálculo de percentual e filtro por limiar (`GetAttendanceBelowThresholdUseCase`), transição inválida para justificar falta já justificada ou presença (`JustifyAbsenceUseCase`).
+- Unit specs: bloqueio por data fora do calendário letivo (`RecordAttendanceUseCase`), professor sem horário vigente naquela turma/disciplina/data → `NotAllowedError` (`RecordAttendanceUseCase`, usando o `in-memory-schedule-slots-repository.ts` de `F1-E05`), cálculo de percentual e filtro por limiar (`GetAttendanceBelowThresholdUseCase`), transição inválida para justificar falta já justificada ou presença (`JustifyAbsenceUseCase`).
 - E2E: um `.e2e-spec.ts` por controller listado na seção HTTP.
 
 ## Definition of Done

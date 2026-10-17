@@ -18,22 +18,22 @@ Regra de dependência: `app` depende de `features`; `features` pode depender de 
 
 ## 2. Estrutura de pastas
 
-Toda navegação fica sob o tenant identificado na própria URL — `app/[grupo]/[escola]/…` — porque
+Toda navegação fica sob o tenant identificado na própria URL — `app/[group]/[school]/…` — porque
 uma sessão sempre pertence a uma escola (ver `arquitetura-ignite.md` §11). As fichas de feature
 escrevem os caminhos como `app/(portal)/…`/`app/(public)/…` por brevidade; leia-os como relativos
-a `app/[grupo]/[escola]/`:
+a `app/[group]/[school]/`:
 
 ```
 diceduc-web/
   app/
-    [grupo]/
-      [escola]/
-        layout.tsx             busca branding (nome/logo/cor) via GET /public/branding/:grupo/:escola
+    [group]/
+      [school]/
+        layout.tsx             busca branding (nome/logo/cor) via GET /public/branding/:groupSlug/:schoolSlug
         (public)/                rotas sem sessão (login, primeiro acesso, esqueci/redefinir senha — atrás de flag)
         (portal)/
-          alunos/
-          turmas/
-          financeiro/
+          students/
+          class-groups/
+          finance/
           ...                     uma pasta de rota por área, componente de página fino
     page.tsx                  raiz "/" — página simples "acesse pelo link da sua escola"
     layout.tsx
@@ -62,13 +62,13 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 - App Router, Server Components por padrão; `"use client"` só onde há interatividade/estado local.
 - Componentes de página são **finos**: buscam dados (via `features/<contexto>/api` ou hooks) e compõem componentes de `features/<contexto>/components`. Nada de lógica de negócio dentro de `app/`.
 - Agrupamento de rotas por área de acesso: `(public)` (sem sessão) e `(portal)` (autenticado, com `proxy.ts` validando/renovando a sessão e `getSession()` resolvendo o papel).
-- `app/[grupo]/[escola]/layout.tsx` busca o branding do tenant (`GET /public/branding/:grupo/:escola`, com `cache()` do React) e aplica nome/logo/cor: `School.primaryColor` → `Group.primaryColor` → cor padrão do design system, sobrescrevendo só os tokens de marca (`--primary`, `--primary-foreground`, `--ring`, `--sidebar-primary`, `--sidebar-ring`) — detalhe completo da cascata e da derivação em [design-system.md §5](design-system.md#5-branding-por-tenant). Slug de grupo ou escola inexistente → `notFound()`.
+- `app/[group]/[school]/layout.tsx` busca o branding do tenant (`GET /public/branding/:groupSlug/:schoolSlug`, com `cache()` do React) e aplica nome/logo/cor: `School.primaryColor` → `Group.primaryColor` → cor padrão do design system, sobrescrevendo só os tokens de marca (`--primary`, `--primary-foreground`, `--ring`, `--sidebar-primary`, `--sidebar-ring`) — detalhe completo da cascata e da derivação em [design-system.md §5](design-system.md#5-branding-por-tenant). Slug de grupo ou escola inexistente → `notFound()`.
 - Rotas dinâmicas (`[id]`) e paralelas/interceptadas apenas quando o caso de uso exigir (ex.: modal de detalhe de aluno sobre a lista).
 
 ## 4. Camada de dados (`features/<contexto>/api` + `shared/api`)
 
 - `shared/api/client.ts`: client HTTP único (`fetch` tipado), marcado `server-only` — só roda no servidor do Next (padrão BFF, ver §6). Injeta o access token como `Bearer` a partir do cookie da sessão, trata erros de forma consistente (mapeia erro HTTP → tipo de erro de domínio conhecido pelo frontend). Mutações disparadas por Client Components passam por Server Actions, que chamam este client — o browser nunca importa `client.ts` diretamente.
-- `features/<contexto>/api/`: uma função por operação (`getStudent`, `createStudent`, `listTurmas`...), tipada com os DTOs de resposta da API. Não expõe `fetch` cru para os componentes.
+- `features/<contexto>/api/`: uma função por operação (`getStudent`, `createStudent`, `listClassGroups`...), tipada com os DTOs de resposta da API. Não expõe `fetch` cru para os componentes.
 - Data-fetching em Server Components sempre que possível (menos JS no client); Client Components usam hooks de `features/<contexto>/hooks/` para mutações e dados que dependem de interação.
 - Sem duplicar validação: os schemas Zod usados nos formulários (`features/<contexto>/schemas/`) devem espelhar os schemas de entrada do backend descritos na ficha da tarefa correspondente.
 
@@ -86,7 +86,7 @@ checagem de `Origin`. Detalhe completo de emissão/renovação de sessão em
 [F1-E10](docs/features/F1-E10-identidade-acesso/spec-identidade-acesso.md).
 
 - **Cookies:** `diceduc_access` (15 min) e `diceduc_refresh` (7 dias), ambos httpOnly, Secure,
-  `SameSite=Lax`, com `Path=/{grupoSlug}` — permite ficar logado em grupos diferentes ao mesmo
+  `SameSite=Lax`, com `Path=/{groupSlug}` — permite ficar logado em grupos diferentes ao mesmo
   tempo no mesmo navegador (ex.: professor que leciona em duas secretarias).
 - **`proxy.ts`:** extrai grupo e escola do pathname. Sem cookie → redireciona para o login daquela
   escola. Access expirado (ou a menos de 1 min de expirar) → chama `POST /sessions/refresh` e grava
@@ -137,14 +137,14 @@ O usuário autenticado pertence a um `Group` (tenant) e, dentro dele, sua sessã
 a uma única `School` — ver [arquitetura-ignite.md §11](arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero)
 para o modelo completo. Implicações no frontend:
 
-- **Tenant na URL:** o grupo e a escola vêm do path (`app/[grupo]/[escola]/…`), não de subdomínio
+- **Tenant na URL:** o grupo e a escola vêm do path (`app/[group]/[school]/…`), não de subdomínio
   — um subdomínio por tenant (`<group>.diceduc.app`) segue como evolução possível, não faz parte do
   MVP.
 - `shared/auth`: `useSession()` expõe `groupId`, `schoolId` e `role` resolvidos do backend (via
   `getSession()`) — nunca inferidos/setados no cliente. Não existe mais `allowedSchoolIds`: como a
   sessão é de uma única escola, não há lista para expor.
 - **Sem seletor de escola:** trocar de escola sempre passa por um novo login (ver §6), então não
-  existe componente de seletor no MVP. A tela `(portal)/minha-conta` lista, como links, as outras
+  existe componente de seletor no MVP. A tela `(portal)/my-account` lista, como links, as outras
   escolas do group a que o usuário tem acesso, avisando que abrir um link exige logar de novo.
 - `shared/api/client.ts` nunca envia `groupId`/`schoolId` como parâmetro de autoridade — o backend
   resolve os dois a partir da sessão; qualquer `schoolId` que a UI mande em filtros de tela é só

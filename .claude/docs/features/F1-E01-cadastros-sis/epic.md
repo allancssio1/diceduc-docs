@@ -32,7 +32,7 @@ Cadastro e histórico de alunos, responsáveis, professores e funcionários, mai
 
 ## Dependências e integrações
 
-Depende de F1-E00 (bootstrap dos repositórios). É a fundação de todos os épicos de domínio da Fase 1: `F1-E02` (matrícula) usa `Student`/`Turma`/`SchoolYear`; `F1-E03`/`F1-E04`/`F1-E05` seguem a mesma cadeia; `F1-E09` estende o guard de perfis que aqui só aplica `JwtAuthGuard` padrão.
+Depende de F1-E00 (bootstrap dos repositórios). É a fundação de todos os épicos de domínio da Fase 1: `F1-E02` (matrícula) usa `Student`/`ClassGroup`/`SchoolYear`; `F1-E03`/`F1-E04`/`F1-E05` seguem a mesma cadeia; `F1-E09` estende o guard de perfis que aqui só aplica `JwtAuthGuard` padrão.
 
 ## Decisões em aberto / riscos
 

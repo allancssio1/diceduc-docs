@@ -76,6 +76,18 @@ static create(props: Optional<QuestionProps, 'createdAt' | 'slug' | 'attachments
 - Entidades em `src/domain/forum/enterprise/entities/` (`Question`, `Answer`, `Comment`, `Attachment`, `Student`, `Instructor`, etc.). `Question` e `Answer` são `AggregateRoot`; comentários/anexos são `Entity` simples.
 - Construtor privado + getters/setters que mutam `this.props` e chamam um `touch()` privado para atualizar `updatedAt`.
 - Value objects em `entities/valueObjects/` (ex.: `Slug` — gera slug a partir do título).
+- **Idioma dos nomes: sempre inglês.** Entidade, model, campo, enum, rota, nome de arquivo e comentário — tudo em inglês, mesmo quando o termo é pedagógico brasileiro sem tradução 1:1 natural (ex.: `Turma`→`ClassGroup`, `Serie`→`GradeLevel`). **Decisão (2026-10-12): revertida a decisão anterior de manter `Serie`/`Turma`/`Disciplina`/`Sala`/`Horario` em português — foram todos renomeados** (histórico, SQL das migrations incluído, já que não havia banco implantado em produção). Só prosa de documentação, texto de UI (título, label, mensagem exibida ao usuário) e dado de teste (nome de aluno/escola etc.) continuam em português. Glossário de referência:
+
+  | Português | Inglês |
+  |---|---|
+  | `Turma` | `ClassGroup` |
+  | `Serie` | `GradeLevel` |
+  | `Disciplina` | `Subject` |
+  | `Sala` | `Room` |
+  | `Horario` | `ScheduleSlot` |
+  | `Turno` (`MANHA/TARDE/NOITE/INTEGRAL`) | `Shift` (`MORNING/AFTERNOON/EVENING/FULL_TIME`) |
+
+  Siglas e nomes próprios brasileiros sem equivalente (CPF, RG, INEP, LGPD, BNCC, Pix) continuam como estão — não são o tipo de termo pedagógico genérico a que a decisão anterior se referia.
 
 ### Eventos de domínio
 
@@ -184,11 +196,11 @@ tem uma ou mais `School` (escolas). Bounded context `tenancy` — ver
 - **`schoolId` — a escola da sessão atual.** **Uma sessão sempre pertence a exatamente uma
   escola** (decisão de produto: quem atua em várias escolas do mesmo group — professor, diretor de
   rede — faz login separado em cada uma; não existe visão "todas as escolas de uma vez" no MVP —
-  isso é a `F2-E07`, Multiunidade). Nas tabelas operacionais (`Student`, `Teacher`, `Turma`,
+  isso é a `F2-E07`, Multiunidade). Nas tabelas operacionais (`Student`, `Teacher`, `ClassGroup`,
   `Invoice`, etc.), `schoolId` é sempre o da sessão corrente, nunca uma lista. Um `UserRole` sem
   `schoolId` (*group-wide*, ex.: mantenedora/admin do Group) significa que o usuário **pode logar
   em qualquer escola do Group**, não que ele vê todas de uma vez — modelado em `F1-E09`.
-- **`allowedStudentIds` — restrição por aluno (IDOR).** Para papéis `RESPONSAVEL`/`ALUNO`, a
+- **`allowedStudentIds` — restrição por aluno (IDOR).** Para papéis `GUARDIAN`/`STUDENT`, a
   sessão também carrega quais alunos aquele usuário pode enxergar — sem isso, nada impede um
   responsável de trocar o `studentId` na URL e ler o boletim de outro aluno da mesma escola.
   Resolvido em `F1-E09`.
@@ -236,7 +248,7 @@ propriedade da camada de infra, não uma disciplina que cada repositório precis
 ### Personalização por tenant (slugs)
 
 `Group.slug` (único global) e `School.slug` (único por group) identificam o tenant na própria URL
-do `diceduc-web`: `app/[grupo]/[escola]/…` (ver `arquitetura-frontend.md` §2). Uma rota pública
+do `diceduc-web`: `app/[group]/[school]/…` (ver `arquitetura-frontend.md` §2). Uma rota pública
 (`GET /public/branding/:groupSlug/:schoolSlug`, `F1-E0A`) devolve nome/logo/cor para a tela de
 login montar a identidade visual antes de qualquer autenticação.
 

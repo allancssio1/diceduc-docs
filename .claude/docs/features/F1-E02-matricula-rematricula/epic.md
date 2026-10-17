@@ -29,7 +29,7 @@ Matricular e rematricular alunos em turmas respeitando limite de vagas, e aplica
 
 ## Dependências e integrações
 
-Depende de F1-E01 (`Student`, `Turma`, `SchoolYear` já existentes). Integra com F1-E06 para sinalizar pendência financeira na rematrícula (leitura, não escrita). É pré-requisito de F1-E03 e F1-E04, que precisam do vínculo aluno-turma para existir.
+Depende de F1-E01 (`Student`, `ClassGroup`, `SchoolYear` já existentes). Integra com F1-E06 para sinalizar pendência financeira na rematrícula (leitura, não escrita). É pré-requisito de F1-E03 e F1-E04, que precisam do vínculo aluno-turma para existir.
 
 ## Decisões em aberto / riscos
 

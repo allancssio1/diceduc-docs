@@ -31,9 +31,9 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 
 - `Student`, `Teacher`, `Staff` carregam `schoolId` (props + coluna Prisma) — pertencem a uma escola do group.
 - `Guardian` é **group-level**, sem `schoolId` — um responsável pode ter filhos em escolas diferentes do mesmo group (ex.: uma secretaria com dois filhos em duas escolas da rede).
-- `SchoolYear`, `Serie`, `Turma`, `Disciplina`, `Sala` carregam `schoolId` — estrutura acadêmica é por escola, não compartilhada entre escolas do mesmo group.
+- `SchoolYear`, `GradeLevel`, `ClassGroup`, `Subject`, `Room` carregam `schoolId` — estrutura acadêmica é por escola, não compartilhada entre escolas do mesmo group.
 - Unicidade: CPF (`Student`, `Guardian`, `Teacher`, `Staff`) único **por group**, não globalmente; `SchoolYear.year` único **por escola** (duas escolas do mesmo group podem ter, cada uma, seu "2026").
-- `RegisterStudentUseCase`/`CreateTurmaUseCase`/etc. **não** recebem `schoolId` como parâmetro de entrada — a Prisma extension injeta o `schoolId` da sessão automaticamente na escrita (ver `arquitetura-ignite.md` §11; não existe mais um helper de validação contra uma lista de escolas, porque uma sessão é sempre de uma única escola).
+- `RegisterStudentUseCase`/`CreateClassGroupUseCase`/etc. **não** recebem `schoolId` como parâmetro de entrada — a Prisma extension injeta o `schoolId` da sessão automaticamente na escrita (ver `arquitetura-ignite.md` §11; não existe mais um helper de validação contra uma lista de escolas, porque uma sessão é sempre de uma única escola).
 
 ## Modelo de domínio (`enterprise`)
 
@@ -63,18 +63,18 @@ Invariantes:
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
 | `SchoolYear` | `AggregateRoot` | `school-year.ts` | `year`, `startDate`, `endDate`, `events: CalendarEvent[]` (feriados/recessos) |
-| `Serie` | `Entity` | `serie.ts` | `name`, `segment: Segment` (`'INFANTIL' \| 'FUNDAMENTAL' \| 'MEDIO'`), `schoolYearId` |
-| `Turma` | `AggregateRoot` | `turma.ts` | `name`, `serieId`, `schoolYearId`, `turno: Turno`, `capacity` (vagas) |
-| `Disciplina` | `Entity` | `disciplina.ts` | `name`, `serieIds: string[]` (séries em que é lecionada) |
-| `Sala` | `Entity` | `sala.ts` | `name`, `capacity` |
+| `GradeLevel` | `Entity` | `grade-level.ts` | `name`, `segment: Segment` (`'EARLY_CHILDHOOD' \| 'ELEMENTARY' \| 'HIGH_SCHOOL'`), `schoolYearId` |
+| `ClassGroup` | `AggregateRoot` | `class-group.ts` | `name`, `gradeLevelId`, `schoolYearId`, `shift: Shift`, `capacity` (vagas) |
+| `Subject` | `Entity` | `subject.ts` | `name`, `gradeLevelIds: string[]` (séries em que é lecionada) |
+| `Room` | `Entity` | `room.ts` | `name`, `capacity` |
 
 Value objects — `entities/valueObjects/`:
-- `turno.ts` — enum `Turno = 'MANHA' | 'TARDE' | 'NOITE' | 'INTEGRAL'`.
+- `shift.ts` — enum `Shift = 'MORNING' | 'AFTERNOON' | 'EVENING' | 'FULL_TIME'`.
 - `calendar-event.ts` — `CalendarEvent` (`date`, `type: 'HOLIDAY' | 'RECESS'`, `description`).
 
 Invariantes:
-- `Turma` não pode ser criada com `capacity <= 0`.
-- `Serie`/`Disciplina` só podem referenciar um `SchoolYear` existente.
+- `ClassGroup` não pode ser criada com `capacity <= 0`.
+- `GradeLevel`/`Subject` só podem referenciar um `SchoolYear` existente.
 
 ## Use cases (`application`)
 
@@ -100,27 +100,27 @@ Regras de negócio principais:
 | Use case | Arquivo | Entrada | Saída (`Either`) |
 | --- | --- | --- | --- |
 | `CreateSchoolYearUseCase` | `create-school-year.ts` | `year`, `startDate`, `endDate`, `events?` | `Either<InvalidDateRangeError, { schoolYear: SchoolYear }>` |
-| `CreateSerieUseCase` | `create-serie.ts` | `name`, `segment`, `schoolYearId` | `Either<ResourceNotFoundError, { serie: Serie }>` |
-| `CreateTurmaUseCase` | `create-turma.ts` | `name`, `serieId`, `schoolYearId`, `turno`, `capacity` | `Either<ResourceNotFoundError \| InvalidCapacityError, { turma: Turma }>` |
-| `CreateDisciplinaUseCase` | `create-disciplina.ts` | `name`, `serieIds` | `Either<ResourceNotFoundError, { disciplina: Disciplina }>` |
-| `CreateSalaUseCase` | `create-sala.ts` | `name`, `capacity` | `Either<InvalidCapacityError, { sala: Sala }>` |
-| `DeleteTurmaUseCase` | `delete-turma.ts` | `turmaId` | `Either<ResourceNotFoundError \| TurmaHasStudentsError, void>` |
+| `CreateGradeLevelUseCase` | `create-grade-level.ts` | `name`, `segment`, `schoolYearId` | `Either<ResourceNotFoundError, { gradeLevel: GradeLevel }>` |
+| `CreateClassGroupUseCase` | `create-class-group.ts` | `name`, `gradeLevelId`, `schoolYearId`, `shift`, `capacity` | `Either<ResourceNotFoundError \| InvalidCapacityError, { classGroup: ClassGroup }>` |
+| `CreateSubjectUseCase` | `create-subject.ts` | `name`, `gradeLevelIds` | `Either<ResourceNotFoundError, { subject: Subject }>` |
+| `CreateRoomUseCase` | `create-room.ts` | `name`, `capacity` | `Either<InvalidCapacityError, { room: Room }>` |
+| `DeleteClassGroupUseCase` | `delete-class-group.ts` | `classGroupId` | `Either<ResourceNotFoundError \| ClassGroupHasStudentsError, void>` |
 
-Ports: `SchoolYearsRepository`, `SeriesRepository`, `TurmasRepository`, `DisciplinasRepository`, `SalasRepository`.
+Ports: `SchoolYearsRepository`, `GradeLevelsRepository`, `ClassGroupsRepository`, `SubjectsRepository`, `RoomsRepository`.
 
-Regra de negócio destacada: `DeleteTurmaUseCase` bloqueia exclusão se houver alunos matriculados (a checagem em si — vínculo aluno↔turma — pertence ao domínio `academic` que `F1-E02` vai estender; nesta ficha, deixar o port `TurmasRepository.hasEnrolledStudents(turmaId)` definido como método a ser implementado quando `F1-E02` existir, retornando `false` por padrão nesta ficha).
+Regra de negócio destacada: `DeleteClassGroupUseCase` bloqueia exclusão se houver alunos matriculados (a checagem em si — vínculo aluno↔turma — pertence ao domínio `academic` que `F1-E02` vai estender; nesta ficha, deixar o port `ClassGroupsRepository.hasEnrolledStudents(classGroupId)` definido como método a ser implementado quando `F1-E02` existir, retornando `false` por padrão nesta ficha).
 
 ## Persistência (`infra/database/prisma`)
 
 ### `diceduc-api/prisma/schema.prisma` — novos models
 
 - `Student`, `Guardian`, `StudentGuardian` (tabela de junção com `role`), `Teacher`, `Staff`.
-- `SchoolYear`, `Serie`, `Turma`, `Disciplina`, `DisciplinaSerie` (junção N:N), `Sala`, `CalendarEvent`.
-- Enums Prisma espelhando os VOs: `StudentStatus`, `GuardianRole`, `Segment`, `Turno`, `CalendarEventType`.
+- `SchoolYear`, `GradeLevel`, `ClassGroup`, `Subject`, `SubjectGradeLevel` (junção N:N), `Room`, `CalendarEvent`.
+- Enums Prisma espelhando os VOs: `StudentStatus`, `GuardianRole`, `Segment`, `Shift`, `CalendarEventType`.
 
 ### Repositórios — `diceduc-api/src/infra/database/prisma/repositories/`
 
-Um arquivo por port listado acima (`prisma-students-repository.ts`, `prisma-guardians-repository.ts`, `prisma-student-guardians-repository.ts`, `prisma-teachers-repository.ts`, `prisma-staff-repository.ts`, `prisma-school-years-repository.ts`, `prisma-series-repository.ts`, `prisma-turmas-repository.ts`, `prisma-disciplinas-repository.ts`, `prisma-salas-repository.ts`).
+Um arquivo por port listado acima (`prisma-students-repository.ts`, `prisma-guardians-repository.ts`, `prisma-student-guardians-repository.ts`, `prisma-teachers-repository.ts`, `prisma-staff-repository.ts`, `prisma-school-years-repository.ts`, `prisma-grade-levels-repository.ts`, `prisma-class-groups-repository.ts`, `prisma-subjects-repository.ts`, `prisma-rooms-repository.ts`).
 
 ### Mappers — `diceduc-api/src/infra/database/prisma/mappers/`
 
@@ -143,23 +143,23 @@ Controllers em `diceduc-api/src/infra/http/controllers/`, um por use case, todos
 | `POST /teachers` | `register-teacher.controller.ts` | dados de `RegisterTeacherUseCase` | `teacher-presenter.ts` |
 | `POST /staff` | `register-staff.controller.ts` | dados de `RegisterStaffUseCase` | `staff-presenter.ts` |
 | `POST /school-years` | `create-school-year.controller.ts` | dados de `CreateSchoolYearUseCase` | `school-year-presenter.ts` |
-| `POST /series` | `create-serie.controller.ts` | dados de `CreateSerieUseCase` | `serie-presenter.ts` |
-| `POST /turmas` | `create-turma.controller.ts` | dados de `CreateTurmaUseCase` | `turma-presenter.ts` |
-| `DELETE /turmas/:turmaId` | `delete-turma.controller.ts` | — (param) | — (204) |
-| `POST /disciplinas` | `create-disciplina.controller.ts` | dados de `CreateDisciplinaUseCase` | `disciplina-presenter.ts` |
-| `POST /salas` | `create-sala.controller.ts` | dados de `CreateSalaUseCase` | `sala-presenter.ts` |
+| `POST /grade-levels` | `create-grade-level.controller.ts` | dados de `CreateGradeLevelUseCase` | `grade-level-presenter.ts` |
+| `POST /class-groups` | `create-class-group.controller.ts` | dados de `CreateClassGroupUseCase` | `class-group-presenter.ts` |
+| `DELETE /class-groups/:classGroupId` | `delete-class-group.controller.ts` | — (param) | — (204) |
+| `POST /subjects` | `create-subject.controller.ts` | dados de `CreateSubjectUseCase` | `subject-presenter.ts` |
+| `POST /rooms` | `create-room.controller.ts` | dados de `CreateRoomUseCase` | `room-presenter.ts` |
 
 ## Frontend (`diceduc-web`)
 
-Contexto `features/people/` e `features/academic/`, sob a rota `app/(portal)/cadastros/`:
+Contexto `features/people/` e `features/academic/`, sob a rota `app/(portal)/records/`:
 
-- `app/(portal)/cadastros/alunos/page.tsx` — lista de alunos (busca/filtro por situação).
-- `app/(portal)/cadastros/alunos/novo/page.tsx` — formulário de `F1-E01-U01` (`RegisterStudentForm`).
-- `app/(portal)/cadastros/alunos/[studentId]/page.tsx` — detalhe do aluno: dados pessoais, responsáveis vinculados (`F1-E01-U02`), ação de alterar situação (`F1-E01-U04`).
-- `app/(portal)/cadastros/estrutura/page.tsx` — gestão de ano letivo/séries/turmas/disciplinas/salas (`F1-E01-U03`), telas simples de CRUD.
+- `app/(portal)/records/students/page.tsx` — lista de alunos (busca/filtro por situação).
+- `app/(portal)/records/students/new/page.tsx` — formulário de `F1-E01-U01` (`RegisterStudentForm`).
+- `app/(portal)/records/students/[studentId]/page.tsx` — detalhe do aluno: dados pessoais, responsáveis vinculados (`F1-E01-U02`), ação de alterar situação (`F1-E01-U04`).
+- `app/(portal)/records/structure/page.tsx` — gestão de ano letivo/séries/turmas/disciplinas/salas (`F1-E01-U03`), telas simples de CRUD.
 - `features/people/components/RegisterStudentForm.tsx`, `LinkGuardianForm.tsx`, `StudentStatusBadge.tsx`.
 - `features/people/api/students.ts` (`registerStudent`, `getStudent`, `linkGuardian`, `updateStudentStatus`), `features/people/schemas/student.ts`.
-- `features/academic/components/SchoolYearForm.tsx`, `TurmaForm.tsx`, etc.
+- `features/academic/components/SchoolYearForm.tsx`, `ClassGroupForm.tsx`, etc.
 - `features/academic/api/academic.ts`, `features/academic/schemas/academic.ts`.
 
 ## Arquivos a criar/editar (checklist)
@@ -186,23 +186,23 @@ diceduc-api/src/domain/people/application/repositories/teachers-repository.ts
 diceduc-api/src/domain/people/application/repositories/staff-repository.ts
 
 diceduc-api/src/domain/academic/enterprise/entities/school-year.ts
-diceduc-api/src/domain/academic/enterprise/entities/serie.ts
-diceduc-api/src/domain/academic/enterprise/entities/turma.ts
-diceduc-api/src/domain/academic/enterprise/entities/disciplina.ts
-diceduc-api/src/domain/academic/enterprise/entities/sala.ts
-diceduc-api/src/domain/academic/enterprise/entities/valueObjects/turno.ts
+diceduc-api/src/domain/academic/enterprise/entities/grade-level.ts
+diceduc-api/src/domain/academic/enterprise/entities/class-group.ts
+diceduc-api/src/domain/academic/enterprise/entities/subject.ts
+diceduc-api/src/domain/academic/enterprise/entities/room.ts
+diceduc-api/src/domain/academic/enterprise/entities/valueObjects/shift.ts
 diceduc-api/src/domain/academic/enterprise/entities/valueObjects/calendar-event.ts
 diceduc-api/src/domain/academic/application/useCases/create-school-year.ts (+ .spec.ts)
-diceduc-api/src/domain/academic/application/useCases/create-serie.ts (+ .spec.ts)
-diceduc-api/src/domain/academic/application/useCases/create-turma.ts (+ errors/, + .spec.ts)
-diceduc-api/src/domain/academic/application/useCases/create-disciplina.ts (+ .spec.ts)
-diceduc-api/src/domain/academic/application/useCases/create-sala.ts (+ .spec.ts)
-diceduc-api/src/domain/academic/application/useCases/delete-turma.ts (+ errors/, + .spec.ts)
+diceduc-api/src/domain/academic/application/useCases/create-grade-level.ts (+ .spec.ts)
+diceduc-api/src/domain/academic/application/useCases/create-class-group.ts (+ errors/, + .spec.ts)
+diceduc-api/src/domain/academic/application/useCases/create-subject.ts (+ .spec.ts)
+diceduc-api/src/domain/academic/application/useCases/create-room.ts (+ .spec.ts)
+diceduc-api/src/domain/academic/application/useCases/delete-class-group.ts (+ errors/, + .spec.ts)
 diceduc-api/src/domain/academic/application/repositories/school-years-repository.ts
-diceduc-api/src/domain/academic/application/repositories/series-repository.ts
-diceduc-api/src/domain/academic/application/repositories/turmas-repository.ts
-diceduc-api/src/domain/academic/application/repositories/disciplinas-repository.ts
-diceduc-api/src/domain/academic/application/repositories/salas-repository.ts
+diceduc-api/src/domain/academic/application/repositories/grade-levels-repository.ts
+diceduc-api/src/domain/academic/application/repositories/class-groups-repository.ts
+diceduc-api/src/domain/academic/application/repositories/subjects-repository.ts
+diceduc-api/src/domain/academic/application/repositories/rooms-repository.ts
 
 diceduc-api/prisma/schema.prisma                          (editar — adicionar models/enums acima)
 diceduc-api/src/infra/database/prisma/repositories/*.ts   (10 repositórios, ver seção Persistência)
@@ -211,10 +211,10 @@ diceduc-api/src/infra/database/prisma/mappers/*.ts        (10 mappers, ver seç�
 diceduc-api/src/infra/http/controllers/*.ts                (12 controllers, ver seção HTTP)
 diceduc-api/src/infra/http/presenters/*.ts                 (8 presenters, ver seção HTTP)
 
-diceduc-web/app/(portal)/cadastros/alunos/page.tsx
-diceduc-web/app/(portal)/cadastros/alunos/novo/page.tsx
-diceduc-web/app/(portal)/cadastros/alunos/[studentId]/page.tsx
-diceduc-web/app/(portal)/cadastros/estrutura/page.tsx
+diceduc-web/app/(portal)/records/students/page.tsx
+diceduc-web/app/(portal)/records/students/new/page.tsx
+diceduc-web/app/(portal)/records/students/[studentId]/page.tsx
+diceduc-web/app/(portal)/records/structure/page.tsx
 diceduc-web/features/people/components/*.tsx
 diceduc-web/features/people/api/students.ts
 diceduc-web/features/people/schemas/student.ts
@@ -225,8 +225,8 @@ diceduc-web/features/academic/schemas/academic.ts
 
 ## Testes
 
-- Repositórios in-memory (`diceduc-api/test/repositories/`): `in-memory-students-repository.ts`, `in-memory-guardians-repository.ts`, `in-memory-student-guardians-repository.ts`, `in-memory-teachers-repository.ts`, `in-memory-staff-repository.ts`, `in-memory-school-years-repository.ts`, `in-memory-series-repository.ts`, `in-memory-turmas-repository.ts`, `in-memory-disciplinas-repository.ts`, `in-memory-salas-repository.ts`.
-- Factories (`diceduc-api/test/factories/`): `make-student.ts`, `make-guardian.ts`, `make-teacher.ts`, `make-staff.ts`, `make-school-year.ts`, `make-serie.ts`, `make-turma.ts`, `make-disciplina.ts`, `make-sala.ts` (+ versões `@Injectable()` com persistência Prisma para e2e).
+- Repositórios in-memory (`diceduc-api/test/repositories/`): `in-memory-students-repository.ts`, `in-memory-guardians-repository.ts`, `in-memory-student-guardians-repository.ts`, `in-memory-teachers-repository.ts`, `in-memory-staff-repository.ts`, `in-memory-school-years-repository.ts`, `in-memory-grade-levels-repository.ts`, `in-memory-class-groups-repository.ts`, `in-memory-subjects-repository.ts`, `in-memory-rooms-repository.ts`.
+- Factories (`diceduc-api/test/factories/`): `make-student.ts`, `make-guardian.ts`, `make-teacher.ts`, `make-staff.ts`, `make-school-year.ts`, `make-grade-level.ts`, `make-class-group.ts`, `make-subject.ts`, `make-room.ts` (+ versões `@Injectable()` com persistência Prisma para e2e).
 - Unit specs: um `.spec.ts` por use case listado nas tabelas acima, cobrindo caminho feliz + cada erro específico.
 - E2E: um `.e2e-spec.ts` por controller listado na seção HTTP.
 
