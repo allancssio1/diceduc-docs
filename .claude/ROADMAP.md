@@ -21,7 +21,8 @@ financeiro, portais). Dentro da Fase 1, a ordem recomendada é:
 papel) → 3. `F1-E09` Segurança/LGPD (perfis de acesso, incluindo o escopo por escola em `UserRole`,
 transversal desde o início) → 4. `F1-E02` Matrícula/turmas → 5. `F1-E05` Horários → 6. `F1-E03`
 Frequência e `F1-E04` Notas/boletins (em paralelo, ambos dependem de turmas/horários) → 7. `F1-E06`
-Financeiro → 8. `F1-E07` Relatórios → 9. `F1-E08` Portais (consome dados de todos os anteriores).
+Financeiro → 8. `F1-E07` Relatórios → 9. `F1-E08` Portais (consome dados de todos os anteriores) → 10. `F1-E11` CRUD
+administrativo (listar/editar/inativar e mover pessoas entre escolas; `U05`/`U06` exigem `F1-E09` implementado).
 
 Fases 2 e 3 pressupõem a Fase 1 estável em produção. `F2-E07` (Multiunidade/rede) deixou de
 introduzir qualquer parte do isolamento/escopo multi-tenant (isso já é fundacional desde `F1-E0A`/
@@ -53,6 +54,7 @@ introduzir qualquer parte do isolamento/escopo multi-tenant (isso já é fundaci
 | F1-E07 | Relatórios administrativos e oficiais | Must | M | F1-E01 a F1-E06 |
 | F1-E08 | Portais web (pais, alunos, professores) | Must | G | F1-E01 a F1-E06 |
 | F1-E09 | Segurança, perfis de acesso e LGPD | Must | M | F1-E01, F1-E10 (transversal) |
+| F1-E11 | CRUD administrativo (escolas, alunos, professores, funcionários) | Must | G | F1-E0A, F1-E01, F1-E09 |
 
 ---
 
@@ -116,6 +118,7 @@ introduzir qualquer parte do isolamento/escopo multi-tenant (isso já é fundaci
 | F1-E07 | Relatórios administrativos e oficiais | 1 | Must | M |
 | F1-E08 | Portais web | 1 | Must | G |
 | F1-E09 | Segurança, acesso e LGPD | 1 | Must | M |
+| F1-E11 | CRUD administrativo | 1 | Must | G |
 | F2-E01 | App mobile | 2 | Must | GG |
 | F2-E02 | Comunicação multicanal | 2 | Must | G |
 | F2-E03 | Integração com pagamentos | 2 | Must | G |

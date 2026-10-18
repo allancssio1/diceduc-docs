@@ -30,6 +30,7 @@ Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejam
 | [F1-E07](F1-E07-relatorios/epic.md) | Relatórios administrativos e oficiais | `reporting` | backend | 🔵 especificado | F1-E01…F1-E06 |
 | [F1-E08](F1-E08-portais-web/epic.md) | Portais web (pais, alunos, professores) | vários | frontend | 🔵 especificado | F1-E01…F1-E06 |
 | [F1-E09](F1-E09-seguranca-lgpd/epic.md) | Segurança, perfis de acesso e LGPD | `iam` | backend | 🔵 especificado (2 specs: `spec-seguranca-lgpd.md`, `spec-direitos-titular.md`) | F1-E01, F1-E10 (transversal) |
+| [F1-E11](F1-E11-crud-administrativo/epic.md) | CRUD administrativo (escolas, alunos, professores, funcionários) | `tenancy`, `people`, `iam` | backend, frontend | ⚪ épico | F1-E0A, F1-E01, F1-E09 |
 
 ## Fase 2 — Eficiência & Comunicação
 
