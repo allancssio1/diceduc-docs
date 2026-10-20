@@ -374,6 +374,71 @@ para exercer meus direitos de titular quando a exportação não resolve.
 
 ---
 
+### F1-E11 — CRUD administrativo
+**Objetivo:** Dar ao admin do grupo e à secretaria listagem, edição e inativação de escolas, alunos, professores e funcionários, além de transferência e papel por escola.
+**Prioridade:** Must · **Estimativa:** G · **Depende de:** F1-E0A, F1-E01, F1-E09
+
+#### F1-E11-U01
+Como **administrador do grupo**, quero editar os dados do grupo e das escolas e inativar ou reativar uma escola,
+para manter o cadastro da rede atualizado sem depender da equipe DICEDUC.
+
+**Critérios de aceite:**
+- [ ] Posso editar nome, logo e cor do grupo, e o contato do encarregado (DPO).
+- [ ] Posso editar nome, código INEP, endereço, logo e cor de cada escola do meu grupo.
+- [ ] Posso inativar e reativar uma escola; escola inativa deixa de aceitar login e some do branding público.
+- [ ] Não consigo ver nem editar escola ou grupo de outro tenant.
+- [ ] Criar um novo grupo continua restrito à equipe DICEDUC.
+
+#### F1-E11-U02
+Como **secretaria**, quero listar, buscar, editar e inativar alunos,
+para corrigir dados e manter a base atualizada sem recadastrar.
+
+**Critérios de aceite:**
+- [ ] Listagem paginada com busca por nome ou CPF, restrita à escola da sessão.
+- [ ] Edito dados cadastrais e de contato do aluno; a alteração entra na trilha de auditoria.
+- [ ] Inativar o aluno preserva matrículas, notas e histórico financeiro (sem exclusão física).
+- [ ] Responsáveis vinculados continuam acessíveis a partir do aluno.
+
+#### F1-E11-U03
+Como **secretaria**, quero listar, buscar, editar e inativar professores,
+para manter o quadro docente correto.
+
+**Critérios de aceite:**
+- [ ] Listagem paginada com busca por nome ou CPF.
+- [ ] Edito nome, e-mail e telefone; a alteração entra na trilha de auditoria.
+- [ ] Inativar um professor com turmas ou aulas atribuídas avisa e exige reatribuição antes de concluir.
+
+#### F1-E11-U04
+Como **secretaria**, quero listar, buscar, editar e inativar funcionários,
+para manter o quadro administrativo correto.
+
+**Critérios de aceite:**
+- [ ] Listagem paginada com busca por nome, CPF ou função.
+- [ ] Edito nome, contato e função; a alteração entra na trilha de auditoria.
+- [ ] Inativar um funcionário bloqueia o login dele sem apagar o histórico.
+
+#### F1-E11-U05
+Como **administrador do grupo**, quero transferir um funcionário ou professor de uma escola para outra do mesmo grupo,
+para realocar pessoal sem recadastrar.
+
+**Critérios de aceite:**
+- [ ] A transferência só vale entre escolas do mesmo grupo.
+- [ ] O histórico da pessoa na escola de origem é preservado.
+- [ ] Turmas e aulas atribuídas na escola de origem são tratadas antes de concluir (reatribuir ou bloquear).
+- [ ] A transferência entra na trilha de auditoria.
+
+#### F1-E11-U06
+Como **administrador do grupo**, quero atribuir, promover e despromover o papel de um funcionário em cada escola,
+para que a mesma pessoa seja, por exemplo, coordenadora numa escola e professora em outra.
+
+**Critérios de aceite:**
+- [ ] O papel é definido por escola; mudar o papel numa escola não altera o das outras.
+- [ ] A mudança vale no próximo login ou renovação de sessão da pessoa.
+- [ ] Só quem tem permissão de administração de pessoas consegue alterar papéis.
+- [ ] Toda mudança de papel entra na trilha de auditoria.
+
+---
+
 ## Fase 2 — Eficiência & Comunicação (Nível 2: Bom ter)
 
 ### F2-E01 — App mobile (pais, alunos, professores)
