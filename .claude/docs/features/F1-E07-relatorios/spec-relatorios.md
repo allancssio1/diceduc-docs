@@ -40,10 +40,10 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 | Use case | Arquivo | Entrada | Repositórios injetados | Saída (`Either`) |
 | --- | --- | --- | --- | --- |
 | `GenerateStudentListReportUseCase` | `generate-student-list-report.ts` | `classGroupId?`, `gradeLevelId?`, `status?` | `StudentsRepository`, `EnrollmentsRepository` | `Either<never, { rows: StudentReportRow[] }>` |
-| `GenerateAttendanceReportUseCase` | `generate-attendance-report.ts` | `classGroupId?`, `gradeLevelId?`, `period?` | `AttendanceRecordsRepository` | `Either<never, { rows: AttendanceReportRow[] }>` |
+| `GenerateAttendanceReportUseCase` | `generate-attendance-report.ts` | `classGroupId?`, `gradeLevelId?`, `startDate?`, `endDate?` | `AttendanceRecordsRepository` | `Either<never, { rows: AttendanceReportRow[] }>` |
 | `GenerateGradesReportUseCase` | `generate-grades-report.ts` | `classGroupId?`, `gradeLevelId?`, `period?` | `GradesRepository`, `AssessmentsRepository` | `Either<never, { rows: GradesReportRow[] }>` |
 | `GenerateFinalResultsReportUseCase` | `generate-final-results-report.ts` | `classGroupId?`, `gradeLevelId?`, `schoolYearId` | `EnrollmentsRepository` | `Either<never, { rows: FinalResultReportRow[] }>` |
-| `GenerateDelinquencyReportUseCase` | `generate-delinquency-report.ts` | `classGroupId?`, `gradeLevelId?`, `period?` | `InvoicesRepository` (mesma agregação de `GetFinancialStatusUseCase` de `F1-E06`, reaproveitar via injeção do repositório, não duplicar lógica) | `Either<never, { rows: DelinquencyReportRow[] }>` |
+| `GenerateDelinquencyReportUseCase` | `generate-delinquency-report.ts` | `classGroupId?`, `gradeLevelId?`, `startDate?`, `endDate?` | `InvoicesRepository` (mesma agregação de `GetFinancialStatusUseCase` de `F1-E06`, reaproveitar via injeção do repositório, não duplicar lógica) | `Either<never, { rows: DelinquencyReportRow[] }>` |
 | `ExportSchoolCensusUseCase` | `export-school-census.ts` | `schoolYearId` | `StudentsRepository`, `EnrollmentsRepository` | `Either<IncompleteCensusDataError, { records: SchoolCensusRecord[] }>` |
 
 `*ReportRow`/`SchoolCensusRecord` são tipos simples (DTOs) declarados junto de cada use case, não entidades de domínio.
@@ -51,6 +51,8 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 Regras de negócio principais:
 - Todos os relatórios de listagem (`Generate*ReportUseCase`) retornam `Either<never, ...>` — filtro vazio é um resultado válido (lista vazia), não um erro.
 - `ExportSchoolCensusUseCase`: para cada aluno da lista, valida campos obrigatórios do Censo (CPF, data de nascimento, endereço completo — o conjunto exato de campos obrigatórios do layout vigente deve ser confirmado contra a especificação oficial do INEP do ano corrente antes de codar; até lá, implementar com um `TODO` explícito no código listando os campos assumidos). Retorna `IncompleteCensusDataError` listando quais alunos têm pendência, sem impedir a geração de um relatório parcial (a exportação em si é bloqueada só se _nenhum_ aluno estiver completo).
+
+**Desvios decididos na implementação:** frequência e inadimplência filtram por `startDate`/`endDate` (inclusivos, dia UTC) em vez de `period` — só `Assessment` tem `period`; o relatório de notas só inclui avaliações `PUBLISHED`; frequência sai uma linha por aluno×turma; a rota `/pending` alimenta a tela do Censo.
 
 ## Persistência (`infra/database/prisma`)
 
@@ -61,11 +63,12 @@ Nenhum novo model. Os repositórios usados já existem (`F1-E01`, `F1-E02`, `F1-
 | Rota | Controller | Query params | Formato de saída |
 | --- | --- | --- | --- |
 | `GET /reports/students` | `generate-student-list-report.controller.ts` | `classGroupId?, gradeLevelId?, status?, format=pdf\|xlsx` | arquivo (PDF ou planilha) |
-| `GET /reports/attendance` | `generate-attendance-report.controller.ts` | `classGroupId?, gradeLevelId?, period?, format` | arquivo |
+| `GET /reports/attendance` | `generate-attendance-report.controller.ts` | `classGroupId?, gradeLevelId?, startDate?, endDate?, format` | arquivo |
 | `GET /reports/grades` | `generate-grades-report.controller.ts` | `classGroupId?, gradeLevelId?, period?, format` | arquivo |
 | `GET /reports/final-results` | `generate-final-results-report.controller.ts` | `classGroupId?, gradeLevelId?, schoolYearId, format` | arquivo |
-| `GET /reports/delinquency` | `generate-delinquency-report.controller.ts` | `classGroupId?, gradeLevelId?, period?, format` | arquivo |
-| `GET /reports/school-census` | `export-school-census.controller.ts` | `schoolYearId, format=csv` | arquivo CSV |
+| `GET /reports/delinquency` | `generate-delinquency-report.controller.ts` | `classGroupId?, gradeLevelId?, startDate?, endDate?, format` | arquivo |
+| `GET /reports/school-census` | `export-school-census.controller.ts` | `schoolYearId, format=csv` | arquivo CSV (`422` com `{ message, pending }` se nenhum aluno está completo) |
+| `GET /reports/school-census/pending` | `get-school-census-pending.controller.ts` | `schoolYearId` | JSON `{ pending }` (sempre `200`) |
 
 Geração de arquivo: PDF reaproveita a mesma lib decidida em `F1-E04` (`pdf-lib` ou equivalente definido no bootstrap); planilha usa `exceljs` (XLSX) ou `csv-stringify` (CSV) — preferir `csv-stringify` para o Censo por ser o formato mais comum de importação em sistemas do MEC, e `exceljs` só para os relatórios operacionais que pedem XLSX explicitamente.
 
