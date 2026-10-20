@@ -145,6 +145,16 @@ Adicionar `@RequirePermission(<module>, <action>)` em cada controller de `F1-E01
 - `features/iam/api/iam.ts` (`configureRolePermissions`, `assignRoleToUser`, `getAuditTrail`, `registerConsent`, `revokeConsent`, `getConsentStatus`), `features/iam/schemas/iam.ts`.
 - `shared/auth`: expor `role`/`permissions` do usuário logado para esconder ações na UI conforme permissão (complementa o guard do backend, não substitui).
 
+## Desvios decididos na implementação
+
+- **Matriz de permissões padrão** (a spec não a definia): ADMIN/PRINCIPAL tudo; SECRETARY people/academic/attendance/finance/iam V+E, assessment/reporting V; COORDINATION people/academic/attendance/assessment V+E, reporting V; TEACHER people/academic V, attendance/assessment V+E; FINANCE people/academic V, finance V+E, reporting V; GUARDIAN/STUDENT só VIEW em people/academic/attendance/assessment/finance. Consequência: SECRETARY (por ter `iam`) lê `GET /audit-logs`. EDIT não implica VIEW.
+- **`actorUserId`** obrigatório nos use cases que auditam; **`GET /me`** devolve `{ user, group: { dpoName, dpoEmail } }`.
+- **`GET /roles`** acrescentado (a tela de perfis precisa ler antes de editar), `iam:VIEW`.
+- **Consentimento e `data-export`** sob `@RequirePermission('people','VIEW')`; `RevokeConsent` sem consentimento ativo → 404. O consentimento **não checa o ator** (ver follow-ups).
+- **Script de provisionamento** em `src/scripts/provision-group-roles.ts` (`pnpm db:provision-roles`); não atribui papel a ninguém — admins antigos voltam via `POST /groups/:groupId/admins`.
+- **Frontend:** consentimento na ficha do aluno (não em `(public)/consent`), privacidade dentro do portal, sem `role`/`permissions` em `shared/auth` (a API não os expõe), sem botão no portal do responsável (F1-E08).
+- **Follow-ups do review:** (1) `STUDENT` e `GUARDIAN` podem registrar/revogar consentimento em nome de outro responsável — exigir `guardianId` = `person.id` do ator; (2) `ADMIN` pode zerar as permissões do próprio papel e trancar o group; (3) `GET /schools` aberto a qualquer sessão; (4) `GET /audit-logs` sem paginação.
+
 ## Arquivos a criar/editar (checklist)
 
 - [ ] `diceduc-api/src/domain/iam/enterprise/entities/role.ts`

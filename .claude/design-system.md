@@ -157,8 +157,8 @@ No `layout.tsx` do tenant, como `style` inline no elemento wrapper (as variávei
 
 Os tokens `--sidebar-*` do preset (§2) pressupõem um layout com sidebar — é o shell padrão de `(portal)/`:
 
-- **Sidebar** — navegação lateral (usar o bloco `sidebar` do shadcn, não um componente próprio). Itens filtrados pelo papel do usuário, resolvido via `getSession()` (`arquitetura-frontend.md §6`) — mesmo princípio da checagem de área por papel já descrita lá.
-- **Header** — nome/logo do tenant (do branding, §5), `ThemeToggle` (§4), menu da conta (nome do usuário, link para `minha-conta`, sair).
+- **Sidebar** — navegação lateral no layout do bloco **`sidebar-07`** do shadcn (`pnpm dlx shadcn@latest add sidebar-07`: recolhe para ícones, grupos colapsáveis, usuário no rodapé), não um componente próprio. Sem `TeamSwitcher` (o usuário pertence a um group). Itens filtrados pelo papel do usuário, resolvido via `getSession()` (`arquitetura-frontend.md §6`) — mesmo princípio da checagem de área por papel já descrita lá.
+- **Header** — botão de recolher a sidebar, nome do tenant (branding, §5) e `ThemeToggle` (§4). O logo do tenant fica no cabeçalho da sidebar; o menu da conta (nome do usuário, link para `minha-conta`, sair) fica no rodapé dela (`NavUser`).
 - **Área de conteúdo** — onde a página (`app/[group]/[school]/(portal)/.../page.tsx`) renderiza.
 - `(public)/` (login, primeiro acesso) **não** usa este shell — layout simples, centralizado, sem sidebar.
 

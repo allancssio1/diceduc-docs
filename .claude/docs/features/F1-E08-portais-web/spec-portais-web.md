@@ -83,6 +83,15 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 - `features/reporting` **não** é usado aqui — portais consomem os endpoints de domínio (`report-card`, `financial-status`) diretamente, relatórios administrativos de `F1-E07` são uma área interna separada.
 - `shared/ui`: reaproveitar componentes de tabela/card já usados nas telas internas de `F1-E03`/`F1-E04`/`F1-E06` — não recriar variantes "de portal".
 
+## Desvios decididos na implementação
+
+- **Papel no frontend:** sai do tipo da pessoa vinculada (`User.person.type`), não de um campo `role` no `useSession()`; `GET /me` não expõe papéis. `shared/auth/audience.ts` + `requireAudience()` fazem a checagem em cada `layout.tsx` e página.
+- **Percentual de frequência:** `PRESENT / total`; falta justificada continua contando como falta (regra já existente de `calculatePercentage`, F1-E03). Sem registros = 100%. Histórico de faltas em ordem decrescente.
+- **`GET /guardians/me/students`:** `403` para sessão sem `person` GUARDIAN; `guardianId` vem do banco, nunca do corpo.
+- **Professor:** `teacher/my-schedule` usa o `person.id` da conta (sem digitar ID) e lista as turmas com atalhos; `roll-call` e `grades` reusam `AttendanceSheet`, `CreateAssessmentForm` e `RecordGradesTable`.
+- **Responsável:** o cartão de cada filho tem "Baixar dados" (F1-E09-U04). O consentimento no primeiro acesso do responsável não foi feito.
+- **Sem E2E no web (decisão):** o web só tem testes unitários (Vitest). O Playwright e o job `e2e` do CI foram removidos; o IDOR é coberto pelos e2e da API.
+
 ## Arquivos a criar/editar (checklist)
 
 - [ ] `diceduc-api/src/domain/people/application/useCases/list-guardian-students.ts` (+ .spec.ts)
@@ -109,7 +118,7 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 
 - Backend: unit spec para `ListGuardianStudentsUseCase` e `GetStudentAttendanceSummaryUseCase` (repositórios in-memory já existentes de `F1-E01`/`F1-E03`); e2e para os dois novos controllers, incluindo **IDOR**: responsável autenticado pedindo `attendance-summary`/`report-card`/`financial-status` de um `studentId` que não é filho dele → `404` (o `allowedStudentIds` de `F1-E09` resolve isso nos repositórios já existentes, sem lógica nova nestes dois use cases).
 - Frontend: teste de componente para `AttendanceSummaryCard`; teste do `layout.tsx` de cada área garantindo que um usuário com papel `GUARDIAN` não acessa `/(portal)/teacher/**` (redirect) — a checagem agora é via `getSession()`, não mais uma prop simples de `role` no `proxy.ts` (ver "Rotas e controle de acesso").
-- E2E (Playwright, crítico, roda no CI do `diceduc-web` a partir desta ficha — job sobe Postgres + `diceduc-api` no mesmo workflow, ver `F1-E00`): login como responsável → seleciona filho → vê boletim e financeiro; login como aluno → vê boletim (sem botão de edição); responsável tentando abrir a URL do boletim de outro aluno (fora dos seus filhos) → erro/404, nunca o boletim de fato.
+- Sem E2E no web (decisão): só testes unitários; o IDOR fica nos e2e da API.
 
 ## Definition of Done
 
@@ -119,5 +128,5 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 - [ ] Portal do responsável permite alternar entre múltiplos filhos.
 - [ ] Acesso do aluno é comprovadamente somente leitura (nenhum controle de edição renderizado nem endpoint de escrita aceito para esse papel).
 - [ ] Testes de IDOR (acima) passando para os três endpoints consumidos pelos portais (`report-card`, `attendance-summary`, `financial-status`).
-- [ ] Playwright rodando no CI do `diceduc-web` (não só localmente).
+- [x] ~~Playwright no CI do `diceduc-web`~~ — dispensado: web só com testes unitários.
 - [ ] `.claude/docs/features/README.md` atualizado: status de `F1-E08` para 🟢 quando implementado, com nota sobre comunicados/conteúdo de aula ficarem para épicos futuros.
