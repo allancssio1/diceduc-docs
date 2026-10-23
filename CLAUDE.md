@@ -133,7 +133,7 @@ Novos contextos são adicionados conforme novas fichas forem criadas nas fases s
 
 ## Comandos
 
-Cada repositório é standalone (pnpm 12, Node 24+): rode os comandos dentro da pasta dele. Os scripts completos estão no `README.md` de cada repo.
+Cada repositório é standalone (pnpm 12, Node 26+): rode os comandos dentro da pasta dele. Os scripts completos estão no `README.md` de cada repo.
 
 `diceduc-api` (porta 3333; precisa do `.env`, ver o README):
 
